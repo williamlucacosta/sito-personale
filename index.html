@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luca Costa — Full-Stack Web Developer</title>
+<meta name="description" content="Luca Costa — Full-Stack Web Developer e Computer Engineer. Creo esperienze digitali complete, dal design al codice.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=JetBrains+Mono:ital,wght@0,300..800;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ====== SFONDO SPAZIALE ====== -->
+<div class="space" aria-hidden="true">
+  <canvas id="aurora"></canvas>
+  <div class="nebula"></div>
+  <canvas id="stars"></canvas>
+  <div class="vignette"></div>
+  <div class="grain"></div>
+</div>
+
+<div class="progress-bar" aria-hidden="true"><span id="progressFill"></span></div>
+
+<!-- ====== DOT-NAV LATERALE ====== -->
+<nav class="dotnav" aria-label="Navigazione sezioni">
+  <a href="#home" data-label="Home" class="is-active"><span></span></a>
+  <a href="#about" data-label="About"><span></span></a>
+  <a href="#skills" data-label="Skills"><span></span></a>
+  <a href="#progetti" data-label="Progetti"><span></span></a>
+  <a href="#esperienza" data-label="Esperienza"><span></span></a>
+  <a href="#contatti" data-label="Contatti"><span></span></a>
+</nav>
+
+<!-- ====== NAV ====== -->
+<header class="nav-wrap">
+  <nav class="nav glass">
+    <a class="nav__logo" href="#home">Luca Costa</a>
+    <ul class="nav__links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#progetti">Progetti</a></li>
+      <li><a href="#esperienza">Esperienza</a></li>
+      <li><a href="#contatti">Contatti</a></li>
+    </ul>
+    <a class="btn btn--ghost btn--pill" href="#contatti">Contattami
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </a>
+    <button class="nav__burger" aria-label="Menu"><span></span><span></span></button>
+  </nav>
+</header>
+
+<main>
+<!-- ====== HERO ====== -->
+<section class="hero" id="home">
+  <div class="hero__blob" id="heroBlob">
+    <div class="hero__blob-glow"></div>
+    <div class="blob-stage" id="blobStage">
+      <img id="blobImg" class="blob-img" data-sampler="uTexture" alt="" aria-hidden="true">
+    </div>
+  </div>
+
+  <div class="container hero__content">
+    <p class="kicker reveal"><span class="kicker__num">[ 01 ]</span> FULL-STACK WEB DEVELOPER <span class="kicker__dot">·</span> COMPUTER ENGINEER<span class="caret"></span></p>
+    <h1 class="hero__title" data-mouse="-10">
+      <span class="hero__line"><span>Luca</span></span>
+      <span class="hero__line"><span>Costa</span></span>
+    </h1>
+    <p class="hero__sub reveal" style="--d:.55s">Creo esperienze digitali complete, dal design al codice.<br>Performance, eleganza e logica al servizio delle idee.</p>
+    <div class="hero__cta reveal" style="--d:.7s">
+      <a href="#progetti" class="btn btn--primary magnetic">Vedi i progetti
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </a>
+      <a href="#contatti" class="btn btn--ghost magnetic">Contattami
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 7L22 7"/></svg>
+      </a>
+    </div>
+    <div class="hero__scroll reveal" style="--d:.9s">
+      <svg width="12" height="26" viewBox="0 0 12 26" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 1v20m0 0-4-4m4 4 4-4" class="scroll-arrow"/></svg>
+      <span>SCROLL<br>PER SCOPRIRE</span>
+    </div>
+  </div>
+</section>
+
+<!-- ====== ABOUT ====== -->
+<section class="section" id="about">
+  <div class="container">
+    <h2 class="section__label reveal"><span>[ 02 ]</span> ABOUT</h2>
+    <div class="about-grid">
+      <article class="card glass reveal tilt">
+        <div class="card__icon pulse-ring">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+        </div>
+        <p>Sono Luca Costa, sviluppatore full-stack e ingegnere informatico. Mi occupo di progettare e realizzare applicazioni web performanti, sistemi backend robusti e interfacce moderne.</p>
+        <p>Amo trasformare problemi complessi in soluzioni eleganti e scalabili.</p>
+      </article>
+      <div class="about-langs">
+        <article class="card card--row glass reveal tilt" style="--d:.12s">
+          <div class="card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c2.7 2.7 4 6.2 4 10s-1.3 7.3-4 10c-2.7-2.7-4-6.2-4-10s1.3-7.3 4-10z"/></svg>
+          </div>
+          <div>
+            <h3 class="card__eyebrow">LINGUA MADRE</h3>
+            <p class="card__value"><span class="tag-mini">IT</span> Italiano</p>
+          </div>
+        </article>
+        <article class="card card--row glass reveal tilt" style="--d:.24s">
+          <div class="card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12c0 4-4 7-9 7-1.2 0-2.4-.2-3.4-.5L3 20l1.7-3.4C3.6 15.3 3 13.7 3 12c0-4 4-7 9-7s9 3 9 7z"/></svg>
+          </div>
+          <div>
+            <h3 class="card__eyebrow">LINGUA STRANIERA</h3>
+            <p class="card__value"><span class="tag-mini">EN</span> Inglese B2</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== SKILLS ====== -->
+<section class="section" id="skills">
+  <div class="container">
+    <h2 class="section__label reveal"><span>[ 03 ]</span> SKILLS</h2>
+    <div class="skills-grid">
+      <article class="card glass skills-key reveal tilt">
+        <div class="card__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 2 2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2l-6.1 3.4 1.4-6.8L2.2 9.1l6.9-.8L12 2z"/></svg>
+        </div>
+        <h3 class="card__title">Key Competencies</h3>
+        <ul class="key-list">
+          <li>Problem Solving</li>
+          <li>Clean Code</li>
+          <li>Performance</li>
+          <li>User Experience</li>
+          <li>Teamwork</li>
+          <li>Continuous Learning</li>
+        </ul>
+      </article>
+
+      <article class="card glass skill reveal tilt" style="--d:.08s">
+        <div class="card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-12-2 14"/></svg></div>
+        <div><h3 class="card__title">Front-End</h3>
+        <div class="chips"><span class="chip">React</span><span class="chip">Next.js</span><span class="chip">TypeScript</span><span class="chip">HTML</span><span class="chip">CSS</span><span class="chip">Tailwind</span></div></div>
+      </article>
+
+      <article class="card glass skill reveal tilt" style="--d:.16s">
+        <div class="card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg></div>
+        <div><h3 class="card__title">Back-End</h3>
+        <div class="chips"><span class="chip">Node.js</span><span class="chip">Express</span><span class="chip">PHP</span><span class="chip">MySQL</span><span class="chip">REST API</span></div></div>
+      </article>
+
+      <article class="card glass skill reveal tilt" style="--d:.24s">
+        <div class="card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="14" rx="3"/><circle cx="8.5" cy="10" r="1.5"/><circle cx="15.5" cy="10" r="1.5"/><path d="M8 21h8"/></svg></div>
+        <div><h3 class="card__title">Software Dev</h3>
+        <div class="chips"><span class="chip">C++</span><span class="chip">Python</span><span class="chip">Java</span><span class="chip">OOP</span><span class="chip">DSA</span><span class="chip">Git</span></div></div>
+      </article>
+
+      <article class="card glass skill reveal tilt" style="--d:.12s">
+        <div class="card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="7" width="20" height="11" rx="4"/><path d="M7 11v3m-1.5-1.5h3M15.5 11h.01M18 13.5h.01"/></svg></div>
+        <div><h3 class="card__title">Game Dev</h3>
+        <div class="chips"><span class="chip">Unity</span><span class="chip">C#</span><span class="chip">2D</span><span class="chip">Gameplay</span><span class="chip">Systems</span></div></div>
+      </article>
+
+      <article class="card glass skill reveal tilt" style="--d:.2s">
+        <div class="card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 2 8 4.5v9L12 20l-8-4.5v-9L12 2z"/><path d="M12 11 4 6.5M12 11l8-4.5M12 11v9"/></svg></div>
+        <div><h3 class="card__title">Grafica 3D</h3>
+        <div class="chips"><span class="chip">Blender</span><span class="chip">Modeling</span><span class="chip">Texturing</span><span class="chip">Lighting</span><span class="chip">Rendering</span></div></div>
+      </article>
+
+      <article class="card glass skill reveal tilt" style="--d:.28s">
+        <div class="card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14.5 4.5 19 9 7.5 20.5 3 21l.5-4.5L14.5 4.5zM12 7l4.5 4.5"/></svg></div>
+        <div><h3 class="card__title">Tools &amp; Design</h3>
+        <div class="chips"><span class="chip">Git</span><span class="chip">Docker</span><span class="chip">Figma</span><span class="chip">VS Code</span><span class="chip">Postman</span></div></div>
+      </article>
+    </div>
+
+    <div class="ticker glass reveal" aria-hidden="true">
+      <div class="ticker__track">
+        <span>REACT</span><i>·</i><span>NEXT.JS</span><i>·</i><span>TYPESCRIPT</span><i>·</i><span>NODE.JS</span><i>·</i><span>MYSQL</span><i>·</i><span>TAILWIND</span><i>·</i><span>PHP</span><i>·</i><span>UNITY</span><i>·</i><span>BLENDER</span><i>·</i><span>FIGMA</span><i>·</i><span>DOCKER</span><i>·</i>
+        <span>REACT</span><i>·</i><span>NEXT.JS</span><i>·</i><span>TYPESCRIPT</span><i>·</i><span>NODE.JS</span><i>·</i><span>MYSQL</span><i>·</i><span>TAILWIND</span><i>·</i><span>PHP</span><i>·</i><span>UNITY</span><i>·</i><span>BLENDER</span><i>·</i><span>FIGMA</span><i>·</i><span>DOCKER</span><i>·</i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== PROGETTI ====== -->
+<section class="section" id="progetti">
+  <div class="container">
+    <h2 class="section__label reveal"><span>[ 04 ]</span> PROGETTI</h2>
+    <div class="projects-grid">
+
+      <article class="project card glass reveal tilt">
+        <div class="project__thumb thumb--saas">
+          <svg class="thumb-svg" viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p1g" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0" stop-color="#5ff3ff"/><stop offset=".55" stop-color="#4f7dff"/><stop offset="1" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+            <g stroke="#243463" stroke-width=".7" opacity=".55">
+              <line x1="22" y1="38" x2="184" y2="38"/><line x1="22" y1="66" x2="184" y2="66"/><line x1="22" y1="94" x2="184" y2="94"/>
+            </g>
+            <g fill="url(#p1g)" opacity=".3">
+              <rect x="44" width="13" rx="3" y="62" height="38">
+                <animate attributeName="height" values="38;24;38" dur="3.4s" repeatCount="indefinite"/>
+                <animate attributeName="y" values="62;76;62" dur="3.4s" repeatCount="indefinite"/>
+              </rect>
+              <rect x="66" width="13" rx="3" y="50" height="50">
+                <animate attributeName="height" values="50;34;50" dur="3.4s" begin="-1.1s" repeatCount="indefinite"/>
+                <animate attributeName="y" values="50;66;50" dur="3.4s" begin="-1.1s" repeatCount="indefinite"/>
+              </rect>
+              <rect x="88" width="13" rx="3" y="58" height="42">
+                <animate attributeName="height" values="42;28;42" dur="3.4s" begin="-2.2s" repeatCount="indefinite"/>
+                <animate attributeName="y" values="58;72;58" dur="3.4s" begin="-2.2s" repeatCount="indefinite"/>
+              </rect>
+            </g>
+            <polyline points="26,96 58,72 84,82 116,50 150,62 180,34" fill="none" stroke="url(#p1g)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100">
+              <animate attributeName="stroke-dashoffset" values="100;0" dur="2.2s" begin="0.3s" fill="freeze"/>
+            </polyline>
+            <circle cx="180" cy="34" r="3.4" fill="#eaf6ff">
+              <animate attributeName="r" values="3;5;3" dur="2.4s" begin="2.3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="1;.45;1" dur="2.4s" begin="2.3s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+        <div class="project__body">
+          <h3>Email Marketing Platform</h3>
+          <p>Piattaforma SaaS per campagne email, automazioni e analytics.</p>
+          <div class="chips project__chips"><span class="chip">Next.js</span><span class="chip">Node.js</span><span class="chip">MySQL</span></div>
+        </div>
+        <button class="project__plus" aria-label="Dettagli progetto">+</button>
+      </article>
+
+      <article class="project card glass reveal tilt" style="--d:.1s">
+        <div class="project__thumb thumb--game">
+          <svg class="thumb-svg" viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p2g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ff3ff"/><stop offset="1" stop-color="#6a48f7"/></linearGradient>
+            </defs>
+            <g fill="#9fb4ff" opacity=".85"><circle cx="30" cy="26" r="1"/><circle cx="150" cy="22" r="1.2"/><circle cx="176" cy="44" r="1"/><circle cx="64" cy="40" r=".9"/></g>
+            <path d="M0 94 Q 46 72 96 90 T 200 84 V130 H0Z" fill="#101c40" opacity=".75"/>
+            <path d="M0 110 Q 58 92 118 108 T 200 102 V130 H0Z" fill="#0a1230"/>
+            <line x1="0" y1="107" x2="200" y2="107" stroke="#3d63ff" stroke-width="1" opacity=".45"/>
+            <rect x="34" y="90" width="30" height="6" rx="3" fill="#1d2a5e"/>
+            <rect x="122" y="74" width="30" height="6" rx="3" fill="#1d2a5e"/>
+            <path d="M137 53 l1.7 3.6 4 .5-2.9 2.7.7 3.9-3.5-1.9-3.5 1.9.7-3.9-2.9-2.7 4-.5Z" fill="url(#p2g)">
+              <animate attributeName="opacity" values=".55;1;.55" dur="1.7s" repeatCount="indefinite"/>
+              <animateTransform attributeName="transform" type="rotate" from="0 137 60" to="360 137 60" dur="6s" repeatCount="indefinite"/>
+            </path>
+            <g>
+              <rect x="44" y="79" width="11" height="11" rx="2.5" fill="url(#p2g)"/>
+              <animateTransform attributeName="transform" type="translate" values="0 0; 0 -17; 0 0; 0 0" keyTimes="0;0.32;0.62;1" calcMode="spline" keySplines="0.3 0 0.2 1; 0.5 0 0.2 1; 0 0 1 1" dur="2.6s" repeatCount="indefinite"/>
+            </g>
+          </svg>
+        </div>
+        <div class="project__body">
+          <h3>2D Game Unity</h3>
+          <p>Gioco platform 2D con livelli, nemici e sistema di punteggio.</p>
+          <div class="chips project__chips"><span class="chip">Unity</span><span class="chip">C#</span></div>
+        </div>
+        <button class="project__plus" aria-label="Dettagli progetto">+</button>
+      </article>
+
+      <article class="project project--wip card glass reveal tilt" style="--d:.2s">
+        <div class="project__thumb thumb--site">
+          <svg class="thumb-svg" viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="p3planet" cx="38%" cy="30%" r="78%"><stop offset="0" stop-color="#4259d4"/><stop offset=".55" stop-color="#16205a"/><stop offset="1" stop-color="#080d28"/></radialGradient>
+              <linearGradient id="p3ring" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5ff3ff" stop-opacity="0"/><stop offset=".5" stop-color="#5ff3ff"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient>
+            </defs>
+            <g fill="#9fb4ff" opacity=".85"><circle cx="28" cy="30" r="1"/><circle cx="176" cy="34" r="1.2"/><circle cx="158" cy="98" r="1"/><circle cx="40" cy="100" r=".9"/></g>
+            <ellipse cx="100" cy="66" rx="72" ry="22" fill="none" stroke="url(#p3ring)" stroke-width="1.6">
+              <animateTransform attributeName="transform" type="rotate" from="-18 100 66" to="342 100 66" dur="20s" repeatCount="indefinite"/>
+            </ellipse>
+            <ellipse cx="100" cy="66" rx="46" ry="46" fill="none" stroke="#3d63ff" stroke-width="1" opacity=".28"/>
+            <circle cx="100" cy="66" r="18" fill="url(#p3planet)"/>
+            <ellipse cx="93" cy="59" rx="6.5" ry="4.2" fill="#dfeaff" opacity=".45"/>
+            <g>
+              <circle cx="172" cy="66" r="3.2" fill="#dfeaff"/>
+              <animateTransform attributeName="transform" type="rotate" from="0 100 66" to="360 100 66" dur="7s" repeatCount="indefinite"/>
+            </g>
+          </svg>
+          <div class="project__overlay">
+            <button class="wip-btn" data-mode="wireframe">WIREFRAME</button>
+            <button class="wip-btn wip-btn--active" data-mode="layout">LAYOUT</button>
+          </div>
+        </div>
+        <div class="project__body">
+          <h3>Questo sito</h3>
+          <p>Portfolio personale con effetti spaziali, parallasse e animazioni.</p>
+          <div class="chips project__chips"><span class="chip">Next.js</span><span class="chip">Node.js</span><span class="chip">Vercel</span></div>
+        </div>
+        <button class="project__plus" aria-label="Dettagli progetto">+</button>
+      </article>
+
+      <article class="project card glass reveal tilt" style="--d:.3s">
+        <div class="project__thumb thumb--iso">
+          <svg class="thumb-svg" viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p4a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f7dff"/><stop offset="1" stop-color="#2a46ff"/></linearGradient>
+              <linearGradient id="p4b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9a78ff"/><stop offset="1" stop-color="#5a37c8"/></linearGradient>
+            </defs>
+            <g fill="#7d8cff">
+              <circle cx="40" cy="102" r="1.5"><animate attributeName="opacity" values=".3;1;.3" dur="3s" repeatCount="indefinite"/></circle>
+              <circle cx="164" cy="92" r="1.5"><animate attributeName="opacity" values="1;.3;1" dur="3.6s" repeatCount="indefinite"/></circle>
+              <circle cx="156" cy="30" r="1.2"><animate attributeName="opacity" values=".4;1;.4" dur="4s" repeatCount="indefinite"/></circle>
+            </g>
+            <g>
+              <animateTransform attributeName="transform" type="translate" values="0 0; 0 -6; 0 0" dur="5.5s" calcMode="spline" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+              <g stroke="#8ea0ff" stroke-width="1" stroke-opacity=".55">
+                <path d="M100 46 138 66 100 86 62 66Z" fill="url(#p4a)"/>
+                <path d="M62 66v23l38 20V86Z" fill="#16215f"/>
+                <path d="M138 66v23l-38 20V86Z" fill="#2c40a0"/>
+              </g>
+              <g stroke="#c3b4ff" stroke-width="1" stroke-opacity=".6">
+                <path d="M100 30 121 41 100 52 79 41Z" fill="url(#p4b)"/>
+                <path d="M79 41v14l21 11V52Z" fill="#281d6e"/>
+                <path d="M121 41v14l-21 11V52Z" fill="#4c3ab6"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="project__body">
+          <h3>Portfolio 3D</h3>
+          <p>Portfolio interattivo con scene 3D, realtime e animazioni.</p>
+          <div class="chips project__chips"><span class="chip">Three.js</span><span class="chip">Blender</span></div>
+        </div>
+        <button class="project__plus" aria-label="Dettagli progetto">+</button>
+      </article>
+
+      <article class="project card glass reveal tilt" style="--d:.4s">
+        <div class="project__thumb thumb--nand">
+          <svg class="thumb-svg" viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p5g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5ff3ff"/><stop offset="1" stop-color="#4f7dff"/></linearGradient>
+            </defs>
+            <!-- tracce statiche -->
+            <g stroke="#26356a" stroke-width="2.4" fill="none" stroke-linecap="round">
+              <path d="M16 44 H64"/><path d="M16 86 H64"/><path d="M104 65 H132"/><path d="M172 65 H190"/>
+            </g>
+            <!-- corrente che scorre -->
+            <g stroke="url(#p5g)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-dasharray="11 17">
+              <path d="M16 44 H64"><animate attributeName="stroke-dashoffset" values="56;0" dur="1.3s" repeatCount="indefinite"/></path>
+              <path d="M16 86 H64"><animate attributeName="stroke-dashoffset" values="56;0" dur="1.3s" begin="-.4s" repeatCount="indefinite"/></path>
+              <path d="M104 65 H132"><animate attributeName="stroke-dashoffset" values="56;0" dur="1.3s" begin="-.8s" repeatCount="indefinite"/></path>
+              <path d="M172 65 H190"><animate attributeName="stroke-dashoffset" values="56;0" dur="1.3s" begin="-1s" repeatCount="indefinite"/></path>
+            </g>
+            <!-- porte logiche -->
+            <rect x="64" y="34" width="40" height="62" rx="9" fill="#0d1838" stroke="#3d63ff" stroke-width="1.4"/>
+            <rect x="132" y="50" width="40" height="30" rx="8" fill="#0d1838" stroke="#3d63ff" stroke-width="1.4"/>
+            <text x="84" y="69" font-size="11" font-family="JetBrains Mono,monospace" fill="#7fa6ff" text-anchor="middle">&amp;</text>
+            <text x="152" y="69" font-size="11" font-family="JetBrains Mono,monospace" fill="#7fa6ff" text-anchor="middle">!</text>
+            <!-- nodi input/output -->
+            <g fill="#5ff3ff">
+              <circle cx="16" cy="44" r="3.2"><animate attributeName="opacity" values="1;.4;1" dur="1.3s" repeatCount="indefinite"/></circle>
+              <circle cx="16" cy="86" r="3.2"><animate attributeName="opacity" values=".4;1;.4" dur="1.3s" repeatCount="indefinite"/></circle>
+              <circle cx="190" cy="65" r="3.4" fill="#eaf6ff"><animate attributeName="r" values="3;4.6;3" dur="1.3s" repeatCount="indefinite"/></circle>
+            </g>
+          </svg>
+        </div>
+        <div class="project__body">
+          <h3>Nand to Tetris</h3>
+          <p>Implementazione completa del corso Nand to Tetris.</p>
+          <div class="chips project__chips"><span class="chip">HDL</span><span class="chip">VM</span><span class="chip">Assembly</span></div>
+        </div>
+        <button class="project__plus" aria-label="Dettagli progetto">+</button>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ====== ESPERIENZA ====== -->
+<section class="section" id="esperienza">
+  <div class="container">
+    <h2 class="section__label reveal"><span>[ 05 ]</span> ESPERIENZA</h2>
+    <div class="timeline">
+      <article class="timeline__item reveal">
+        <div class="timeline__dot"></div>
+        <div class="card glass tilt">
+          <span class="card__eyebrow">2024 — OGGI</span>
+          <h3 class="card__title">Full-Stack Developer · Freelance</h3>
+          <p>Progettazione e sviluppo di applicazioni web complete per clienti e progetti personali: front-end moderni, API REST, database e deploy.</p>
+        </div>
+      </article>
+      <article class="timeline__item reveal" style="--d:.15s">
+        <div class="timeline__dot"></div>
+        <div class="card glass tilt">
+          <span class="card__eyebrow">2023 — 2024</span>
+          <h3 class="card__title">Game Developer · Progetti Unity</h3>
+          <p>Sviluppo di giochi 2D in Unity: gameplay systems, level design, fisica e ottimizzazione delle performance.</p>
+        </div>
+      </article>
+      <article class="timeline__item reveal" style="--d:.3s">
+        <div class="timeline__dot"></div>
+        <div class="card glass tilt">
+          <span class="card__eyebrow">2021 — IN CORSO</span>
+          <h3 class="card__title">Ingegneria Informatica</h3>
+          <p>Percorso di studi in computer engineering: architettura dei calcolatori, algoritmi e strutture dati, sistemi operativi, reti.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ====== CONTATTI ====== -->
+<section class="section section--contact" id="contatti">
+  <div class="container">
+    <h2 class="section__label reveal"><span>[ 06 ]</span> CONTATTI</h2>
+    <div class="contact glass card reveal">
+      <h3 class="contact__title">Costruiamo qualcosa<br><span class="grad-text">fuori dal comune.</span></h3>
+      <p class="contact__sub">Hai un progetto in mente? Scrivimi, rispondo sempre.</p>
+      <div class="contact__actions">
+        <a class="btn btn--primary magnetic" href="mailto:williamlucacosta17@gmail.com">williamlucacosta17@gmail.com
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </a>
+        <a class="btn btn--ghost magnetic" href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn btn--ghost magnetic" href="https://linkedin.com" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+    <footer class="footer">
+      <span>© 2026 Luca Costa</span>
+      <span>Designed &amp; built in the void <span class="footer__dot">✦</span></span>
+    </footer>
+  </div>
+</section>
+</main>
+
+<!-- toast -->
+<div class="toast glass" id="toast" role="status" aria-live="polite">
+  <div class="toast__icon">✦</div>
+  <div><strong id="toastTitle">Layout in preparazione</strong><span id="toastSub">Sto preparando il sito</span></div>
+</div>
+
+<script src="js/curtains.umd.min.js"></script>
+<script src="js/blob-data.js"></script>
+<script src="js/blob-shader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.23/dist/lenis.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
