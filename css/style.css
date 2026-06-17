@@ -221,17 +221,18 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 
 /* ============ BLOB (hero) — texture animata via shader WebGL ============ */
 .hero__blob{
-  position:absolute;z-index:1;
-  left:66%;top:50%;
-  width:min(116vw,2280px);aspect-ratio:1500/684;
+  position:absolute;z-index:0;
+  left:64%;top:48%;
+  width:min(168vw,3320px);aspect-ratio:1500/684;
   transform:translate(-50%,-50%);
   pointer-events:none;
-  animation:blobIn 1.6s var(--ease) both;
+  animation:blobIn 1.8s var(--ease) both;
 }
 .blob-stage{position:absolute;inset:0}
 .blob-img{
   position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
-  filter:brightness(1.05) saturate(1.12) contrast(1.04) drop-shadow(0 0 60px rgba(50,100,255,.34));
+  /* blur lieve = prospettiva atmosferica: la struttura recede sul fondo mentre il testo resta nitido */
+  filter:blur(1.4px) brightness(.98) saturate(1.12) contrast(1.02) drop-shadow(0 0 70px rgba(50,100,255,.34));
   /* screen: il nero dell'orizzonte si fonde nel cosmo, gli anelli si sommano ad aurora/stelle */
   mix-blend-mode:screen;
   transition:opacity .6s var(--ease);
@@ -239,7 +240,7 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 /* shader attivo: la sorgente è nascosta, il canvas WebGL disegna il blob */
 .hero__blob.is-shaded .blob-img{opacity:0}
 .hero__blob canvas{
-  filter:drop-shadow(0 0 30px rgba(50,100,255,.45)) drop-shadow(0 0 90px rgba(80,55,210,.28));
+  filter:blur(1.2px) drop-shadow(0 0 34px rgba(50,100,255,.45)) drop-shadow(0 0 100px rgba(80,55,210,.28));
   mix-blend-mode:screen;
   opacity:0;transition:opacity .6s var(--ease);     /* nascosto finché lo shader non è pronto */
 }

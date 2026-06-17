@@ -225,8 +225,8 @@
       heroContent.style.transform = `translateY(${out * -46}px)`;
     }
     if (heroBlobEl) {
-      heroBlobEl.style.opacity = String(Math.max(0, 1 - out * 0.7));
-      heroBlobEl.style.translate = '0 ' + (scrollY * 0.16).toFixed(1) + 'px';   // parallasse lenta: il blob lagga lo scroll
+      heroBlobEl.style.opacity = String(Math.max(0, 1 - out * 0.9));
+      heroBlobEl.style.translate = '0 ' + (scrollY * 0.42).toFixed(1) + 'px';   // parallasse profonda: il blob lagga molto, sembra lontanissimo
     }
 
     requestAnimationFrame(frame);
