@@ -302,18 +302,6 @@
     card.addEventListener('pointerleave', () => { card.style.transform = ''; });
   });
 
-  /* ---------- BOTTONI MAGNETICI ---------- */
-  document.querySelectorAll('.magnetic').forEach((btn) => {
-    btn.addEventListener('pointermove', (e) => {
-      if (reduceMotion) return;
-      const r = btn.getBoundingClientRect();
-      const dx = e.clientX - r.left - r.width / 2;
-      const dy = e.clientY - r.top - r.height / 2;
-      btn.style.transform = `translate(${dx * 0.18}px, ${dy * 0.3}px)`;
-    });
-    btn.addEventListener('pointerleave', () => { btn.style.transform = ''; });
-  });
-
   /* ---------- TOAST (wireframe / layout) ---------- */
   const toast = document.getElementById('toast');
   const toastTitle = document.getElementById('toastTitle');

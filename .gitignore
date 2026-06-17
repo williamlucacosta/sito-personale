@@ -9,3 +9,6 @@ Desktop.ini
 
 # Log
 *.log
+
+# Git-bash crash dumps
+*.stackdump
