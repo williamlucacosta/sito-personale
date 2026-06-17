@@ -172,7 +172,9 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 .btn--pill{padding:10px 22px;font-size:13.5px}
 
 /* ============ HERO ============ */
-.hero{min-height:100vh;display:flex;align-items:center;position:relative;padding:104px 0}
+/* overflow-x:clip = contiene il blob gigante (168vw) entro il viewport: niente scrollbar
+   orizzontale ne disallineamenti su schermi larghi; il verticale resta libero (no tagli) */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;padding:104px 0;overflow-x:clip}
 .hero__content{position:relative;z-index:3}
 
 .kicker{
