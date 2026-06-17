@@ -51,6 +51,8 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 
 /* ============ SFONDO SPAZIALE ============ */
 .space{position:fixed;inset:0;z-index:-1;overflow:hidden;background:#030409}
+/* viaggio 3D: layer sopra lo sfondo 2D, dietro ai contenuti */
+#journey{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
 #aurora{
   position:absolute;inset:-6%;width:112%;height:112%;
   filter:blur(50px) saturate(112%);
