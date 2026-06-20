@@ -93,8 +93,8 @@ html{scrollbar-width:none;-ms-overflow-style:none}
     linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,0) 42%),
     var(--bg-card);
   border:1px solid var(--border);
-  backdrop-filter:blur(16px) saturate(122%);
-  -webkit-backdrop-filter:blur(16px) saturate(122%);
+  backdrop-filter:blur(10px) saturate(122%);
+  -webkit-backdrop-filter:blur(10px) saturate(122%);
 }
 .grad-text{background:var(--grad-title);-webkit-background-clip:text;background-clip:text;color:transparent}
 
@@ -259,7 +259,9 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 @keyframes glowPulse{0%,100%{opacity:.7;scale:1}50%{opacity:1;scale:1.08}}
 
 /* ============ SEZIONI ============ */
-.section{padding:110px 0 30px;position:relative}
+/* content-visibility: il browser salta layout/paint delle sezioni fuori schermo.
+   La keyword 'auto' memorizza l'altezza reale dopo il primo render -> niente salti. */
+.section{padding:110px 0 30px;position:relative;content-visibility:auto;contain-intrinsic-size:auto 900px}
 .section__label{
   font-family:var(--mono);font-weight:600;font-size:15px;
   letter-spacing:.14em;color:var(--cyan);margin-bottom:30px;

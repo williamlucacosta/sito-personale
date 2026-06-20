@@ -200,13 +200,16 @@
   const heroContent = document.querySelector('.hero__content');
   const heroBlobEl = document.getElementById('heroBlob');
 
+  let rafId = 0, auroraLast = -1e9, lastOut = -1;
+
   function frame(t) {
     if (lenis) lenis.raf(t);
     smX += (mouseX - smX) * 0.045;
     smY += (mouseY - smY) * 0.045;
     scrollY = window.scrollY;
 
-    drawAurora(t);
+    // aurora: sfocata 50px -> ridisegno a ~30fps (impercettibile, dimezza il costo dei gradienti)
+    if (t - auroraLast >= 33) { drawAurora(t); auroraLast = t; }
     drawStars(t);
 
     for (const el of depthEls) {
@@ -218,18 +221,21 @@
       el.style.translate = `${smX * m}px ${smY * m * 0.7}px`;
     }
 
-    /* hero: uscita cinematica allo scroll */
+    /* hero: uscita cinematica allo scroll (skip se gia' fuori vista: niente scritture inutili) */
     const out = Math.min(scrollY / (window.innerHeight * 0.85), 1);
-    if (heroContent) {
-      heroContent.style.opacity = String(1 - out);
-      heroContent.style.transform = `translateY(${out * -46}px)`;
-    }
-    if (heroBlobEl) {
-      heroBlobEl.style.opacity = String(Math.max(0, 1 - out * 0.9));
-      heroBlobEl.style.translate = '0 ' + (scrollY * 0.42).toFixed(1) + 'px';   // parallasse profonda: il blob lagga molto, sembra lontanissimo
+    if (out !== lastOut) {
+      lastOut = out;
+      if (heroContent) {
+        heroContent.style.opacity = String(1 - out);
+        heroContent.style.transform = `translateY(${out * -46}px)`;
+      }
+      if (heroBlobEl) {
+        heroBlobEl.style.opacity = String(Math.max(0, 1 - out * 0.9));
+        heroBlobEl.style.translate = '0 ' + (scrollY * 0.42).toFixed(1) + 'px';   // parallasse profonda: il blob lagga molto, sembra lontanissimo
+      }
     }
 
-    requestAnimationFrame(frame);
+    rafId = requestAnimationFrame(frame);
   }
 
   buildStars();
@@ -238,8 +244,14 @@
     mouseX = (e.clientX / W - 0.5);
     mouseY = (e.clientY / H - 0.5);
   });
-  if (!reduceMotion) requestAnimationFrame(frame);
-  else {
+  if (!reduceMotion) {
+    rafId = requestAnimationFrame(frame);
+    // pausa i loop quando il tab non e' visibile: 0 CPU in background
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { cancelAnimationFrame(rafId); rafId = 0; }
+      else if (!rafId) { auroraLast = -1e9; rafId = requestAnimationFrame(frame); }
+    });
+  } else {
     drawAurora(0); drawStars(0);
     document.querySelectorAll('.thumb-svg').forEach((s) => { try { s.pauseAnimations(); } catch (e) {} });
   }
