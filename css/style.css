@@ -224,7 +224,7 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 /* ============ BLOB (hero) — texture animata via shader WebGL ============ */
 .hero__blob{
   position:absolute;z-index:0;
-  left:64%;top:52%;
+  left:56%;top:52%;
   width:min(168vw,3320px);aspect-ratio:1500/684;
   transform:translate(-50%,-50%);
   pointer-events:none;
