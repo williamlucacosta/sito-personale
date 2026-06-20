@@ -66,7 +66,7 @@
     }
     float fbm(vec2 p){
       float val = 0.0, amp = 0.5, freq = 1.0;
-      for (int i = 0; i < 4; i++){
+      for (int i = 0; i < 3; i++){        // 3 ottave: 1 in meno = -25% noise, dettaglio fine quasi identico
         val  += amp * snoise(p * freq);
         freq *= 2.0; amp *= 0.5;
       }
@@ -140,7 +140,7 @@
       container: heroBlob,
       alpha: true,
       premultipliedAlpha: false,
-      pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),   // blob enorme: 1.5 basta, -44% pixel da shadare
       watchScroll: false,   // il canvas è nel flusso pagina: niente doppio scroll
     });
   } catch (e) { return; }                       // niente WebGL → resta l'immagine
@@ -180,4 +180,17 @@
       cmy += (tmy - cmy) * 0.08;
       plane.uniforms.uMouse.value = [cmx, cmy];
     });
+
+  // pausa lo shader quando la hero non e' visibile: lo shader (fbm) e' la cosa piu' pesante,
+  // inutile farlo girare mentre scorri i contenuti. Riprende rientrando nella hero.
+  const heroEl = document.getElementById('home') || heroBlob;
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      const vis = entries[0].isIntersecting;
+      try { vis ? curtains.enableDrawing() : curtains.disableDrawing(); } catch (e) {}
+    }, { rootMargin: '120px' }).observe(heroEl);
+  }
+  document.addEventListener('visibilitychange', () => {   // e quando il tab e' nascosto
+    try { document.hidden ? curtains.disableDrawing() : curtains.enableDrawing(); } catch (e) {}
+  });
 })();

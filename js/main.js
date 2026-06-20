@@ -61,26 +61,54 @@
   /* ---------- STARFIELD (3 livelli di profondità + twinkle) ---------- */
   const canvas = document.getElementById('stars');
   const ctx = canvas.getContext('2d');
-  let stars = [], W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
+  let stars = [], W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   let scrollY = 0, mouseX = 0, mouseY = 0, smX = 0, smY = 0;
 
-  function buildStars() {
+  /* qualità adattiva: parte dal n. di core, poi un watchdog la corregge a runtime.
+     Tutti gli effetti restano: cambia solo il NUMERO di stelle e il refresh aurora. */
+  let qTier = (navigator.hardwareConcurrency || 4) <= 4 ? 1 : 0;   // 0 full · 1 medio · 2 leggero
+
+  // sprite stella pre-renderizzato per tinta: drawImage costa molto meno di arc+fill+stringa hsla
+  function makeStarSprite(hue) {
+    const S = 16, c = document.createElement('canvas'); c.width = c.height = S;
+    const x = c.getContext('2d');
+    const g = x.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+    g.addColorStop(0, `hsla(${hue},92%,93%,1)`);
+    g.addColorStop(0.4, `hsla(${hue},90%,80%,.55)`);
+    g.addColorStop(1, `hsla(${hue},90%,72%,0)`);
+    x.fillStyle = g; x.fillRect(0, 0, S, S);
+    return c;
+  }
+  const starSprites = { 225: makeStarSprite(225), 195: makeStarSprite(195), 265: makeStarSprite(265) };
+
+  function starTarget() {
+    const div = qTier >= 2 ? 7200 : qTier === 1 ? 5600 : 4200;
+    const cap = qTier >= 2 ? 170 : qTier === 1 ? 260 : 360;
+    return Math.min(cap, Math.floor(W * H / div));
+  }
+
+  function resizeStars() {       // tocca il canvas (riallocazione): solo su resize reale
     W = window.innerWidth; H = window.innerHeight;
     canvas.width = W * DPR; canvas.height = H * DPR;
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    const count = Math.min(420, Math.floor(W * H / 3800));
-    stars = Array.from({ length: count }, () => {
+    populateStars();
+  }
+
+  function populateStars() {     // solo l'array: il watchdog adattivo chiama questa (niente stall canvas)
+    stars = Array.from({ length: starTarget() }, () => {
       const depth = Math.random();                 // 0 = lontana, 1 = vicina
+      const r = 0.3 + depth * 1.3;
+      const hue = Math.random() < 0.12 ? 265 : (Math.random() < 0.3 ? 195 : 225);
       return {
         x: Math.random() * W,
         y: Math.random() * H,
         depth,
-        r: 0.3 + depth * 1.3,
         base: 0.25 + Math.random() * 0.65,
         tw: 0.5 + Math.random() * 2,               // velocità twinkle
         ph: Math.random() * Math.PI * 2,
-        hue: Math.random() < 0.12 ? 265 : (Math.random() < 0.3 ? 195 : 225),
+        sprite: starSprites[hue],
+        sz: r * 3.4 + (depth > 0.85 ? 5 : 1.6),    // dimensione disco: l'alone è già nello sprite
       };
     });
   }
@@ -181,17 +209,11 @@
       let y = (s.y - scrollY * par) % H; if (y < 0) y += H;
       const x = (s.x + smX * s.depth * 22 + W) % W;
       const a = s.base * (0.55 + 0.45 * Math.sin(t * 0.001 * s.tw + s.ph));
-      ctx.beginPath();
-      ctx.arc(x, y + smY * s.depth * 12, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${s.hue},90%,80%,${a})`;
-      ctx.fill();
-      if (s.depth > 0.85) {                        // alone sulle stelle più vicine
-        ctx.beginPath();
-        ctx.arc(x, y + smY * s.depth * 12, s.r * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${s.hue},90%,70%,${a * 0.08})`;
-        ctx.fill();
-      }
+      const sz = s.sz;
+      ctx.globalAlpha = a;
+      ctx.drawImage(s.sprite, x - sz * 0.5, y + smY * s.depth * 12 - sz * 0.5, sz, sz);
     }
+    ctx.globalAlpha = 1;
   }
 
   /* ---------- LOOP UNICO: stelle + parallasse scroll/mouse ---------- */
@@ -201,6 +223,8 @@
   const heroBlobEl = document.getElementById('heroBlob');
 
   let rafId = 0, auroraLast = -1e9, lastOut = -1;
+  // watchdog adattivo: misura i primi ~2.6s; se il device arranca, scende di un tier
+  let wdT0 = 0, wdFrames = 0, wdSlow = 0, adapted = false, prevT = 0;
 
   function frame(t) {
     if (lenis) lenis.raf(t);
@@ -208,9 +232,21 @@
     smY += (mouseY - smY) * 0.045;
     scrollY = window.scrollY;
 
-    // aurora: sfocata 50px -> ridisegno a ~30fps (impercettibile, dimezza il costo dei gradienti)
-    if (t - auroraLast >= 33) { drawAurora(t); auroraLast = t; }
+    // aurora: sfocata 50px -> ridisegno a 30fps (full) o 20fps (tier ridotto), impercettibile
+    if (t - auroraLast >= (qTier >= 1 ? 50 : 33)) { drawAurora(t); auroraLast = t; }
     drawStars(t);
+
+    // watchdog: conta i frame lenti nella finestra iniziale, poi adatta una volta sola
+    if (!adapted) {
+      if (!wdT0) wdT0 = t;
+      if (prevT && (t - prevT) > 26) wdSlow++;      // frame > 26ms = sotto ~38fps
+      wdFrames++;
+      if (t - wdT0 > 2600 && wdFrames > 20) {
+        adapted = true;
+        if (wdSlow / wdFrames > 0.25 && qTier < 2) { qTier++; populateStars(); }
+      }
+    }
+    prevT = t;
 
     for (const el of depthEls) {
       const d = parseFloat(el.dataset.depth);
@@ -238,8 +274,8 @@
     rafId = requestAnimationFrame(frame);
   }
 
-  buildStars();
-  window.addEventListener('resize', buildStars);
+  resizeStars();
+  window.addEventListener('resize', resizeStars);
   window.addEventListener('pointermove', (e) => {
     mouseX = (e.clientX / W - 0.5);
     mouseY = (e.clientY / H - 0.5);
