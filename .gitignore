@@ -12,3 +12,8 @@ Desktop.ini
 
 # Git-bash crash dumps
 *.stackdump
+
+# Working/source scraps
+*.bak
+_soft.png
+_softcrop.png

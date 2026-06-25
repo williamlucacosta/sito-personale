@@ -133,18 +133,22 @@
   const heroContent = document.querySelector('.hero__content');
   const heroBlobEl = document.getElementById('heroBlob');
 
-  let rafId = 0, auroraLast = -1e9, lastOut = -1;
+  let rafId = 0, auroraLast = -1e9, lastOut = -1, lastRender = 0;
+  const RENDER_MS = 1000 / 62;   // cap del lavoro pesante (stelle/aurora/parallasse) a ~60fps anche su monitor 120/144/180Hz
   // watchdog adattivo: misura i primi ~2.6s; se il device arranca, scende di un tier
   let wdT0 = 0, wdFrames = 0, wdSlow = 0, adapted = false, prevT = 0;
 
   function frame(t) {
-    if (lenis) lenis.raf(t);
+    rafId = requestAnimationFrame(frame);
+    if (lenis) lenis.raf(t);                  // Lenis ogni frame: lo scroll resta fluido al refresh nativo
+    if (t - lastRender < RENDER_MS) return;    // il resto gira al massimo a ~60fps (su 180Hz erano 180fps = 3x lavoro)
+    lastRender = t;
     smX += (mouseX - smX) * 0.045;
     smY += (mouseY - smY) * 0.045;
     scrollY = window.scrollY;
 
-    // aurora: sfocata 50px -> ridisegno a 30fps (full) o 20fps (tier ridotto), impercettibile
-    if (t - auroraLast >= (qTier >= 1 ? 50 : 33)) { drawAurora(t); auroraLast = t; }
+    // aurora: sfocata -> ridisegno ~13-15fps, impercettibile
+    if (t - auroraLast >= (qTier >= 1 ? 75 : 64)) { drawAurora(t); auroraLast = t; }
     drawStars(t);
 
     // watchdog: conta i frame lenti nella finestra iniziale, poi adatta una volta sola
@@ -181,8 +185,6 @@
         heroBlobEl.style.translate = '0 ' + (scrollY * 0.42).toFixed(1) + 'px';   // parallasse profonda: il blob lagga molto, sembra lontanissimo
       }
     }
-
-    rafId = requestAnimationFrame(frame);
   }
 
   resizeStars();
@@ -219,26 +221,61 @@
   const dotLinks = [...document.querySelectorAll('.dotnav a')];
   const dotSections = dotLinks.map((a) => document.querySelector(a.getAttribute('href')));
   let lastY = 0;
+  /* cache di layout: leggere scrollHeight/offsetTop ad ogni scroll = layout thrashing (reflow sincrono).
+     Misuriamo una volta (e su resize/load/font); lo scroll handler fa solo aritmetica. */
+  let vh = window.innerHeight, pageMax = 0, secOffsets = [], dotOffsets = [];
+  let prevCur = -2, prevDcur = -2;
+  function measure() {
+    vh = window.innerHeight;
+    pageMax = document.documentElement.scrollHeight - vh;
+    secOffsets = sections.map((s) => (s ? s.offsetTop : Infinity));
+    dotOffsets = dotSections.map((s) => (s ? s.offsetTop : Infinity));
+  }
 
-  function onScroll() {
+  function updateScroll() {
     const y = window.scrollY;
     navWrap.classList.toggle('is-hidden', y > 500 && y > lastY);
     lastY = y;
-
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    progressFill.style.width = (y / max * 100) + '%';
+    progressFill.style.width = (pageMax > 0 ? Math.min(y / pageMax, 1) * 100 : 0) + '%';
+    // in fondo l'ultima sezione (Contatti) e' troppo corta per raggiungere la soglia: forzala attiva
+    const atBottom = pageMax > 0 && y >= pageMax - 2;
 
     let current = -1;
-    sections.forEach((s, i) => { if (s && y >= s.offsetTop - window.innerHeight * 0.4) current = i; });
-    links.forEach((a, i) => a.classList.toggle('is-active', i === current));
+    const t1 = vh * 0.4;
+    for (let i = 0; i < secOffsets.length; i++) if (y >= secOffsets[i] - t1) current = i;
+    if (atBottom) current = sections.length - 1;
+    if (current !== prevCur) {                       // tocca il DOM solo se la sezione attiva cambia
+      links.forEach((a, i) => a.classList.toggle('is-active', i === current));
+      prevCur = current;
+    }
 
     let dcur = 0;
-    dotSections.forEach((s, i) => { if (s && y >= s.offsetTop - window.innerHeight * 0.45) dcur = i; });
-    dotLinks.forEach((a, i) => a.classList.toggle('is-active', i === dcur));
+    const t2 = vh * 0.45;
+    for (let i = 0; i < dotOffsets.length; i++) if (y >= dotOffsets[i] - t2) dcur = i;
+    if (atBottom) dcur = dotSections.length - 1;
+    if (dcur !== prevDcur) {
+      dotLinks.forEach((a, i) => a.classList.toggle('is-active', i === dcur));
+      prevDcur = dcur;
+    }
   }
-  window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* un solo update per frame, anche se arrivano piu' eventi scroll */
+  let scrollTicking = false;
+  function onScroll() {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(() => { updateScroll(); scrollTicking = false; });
+  }
+  function remeasure() { measure(); updateScroll(); }
+
+  remeasure();
+  window.addEventListener('load', remeasure);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure).catch(() => {});
+  let measureT;
+  window.addEventListener('resize', () => { clearTimeout(measureT); measureT = setTimeout(remeasure, 150); });
+  // una sola sorgente di scroll: Lenis se attivo, altrimenti il nativo (niente doppio handler)
   if (lenis) lenis.on('scroll', onScroll);
-  onScroll();
+  else window.addEventListener('scroll', onScroll, { passive: true });
 
   /* menu mobile */
   const burger = document.querySelector('.nav__burger');
@@ -246,19 +283,32 @@
   burger.addEventListener('click', () => nav.classList.toggle('is-open'));
   links.forEach((a) => a.addEventListener('click', () => nav.classList.remove('is-open')));
 
-  /* ---------- CARD: spotlight che segue il mouse + tilt 3D ---------- */
+  /* ---------- CARD: spotlight + tilt 3D, agganciato a rAF (max 1 calcolo per frame) ---------- */
   document.querySelectorAll('.card').forEach((card) => {
-    card.addEventListener('pointermove', (e) => {
-      const r = card.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width;
-      const py = (e.clientY - r.top) / r.height;
+    card.insertAdjacentHTML('afterbegin', '<i class="card__foil" aria-hidden="true"></i>');
+    const tilt = card.classList.contains('tilt') && !reduceMotion;
+    let rect = null, lastE = null, scheduled = false;
+    function apply() {
+      scheduled = false;
+      if (!lastE) return;
+      if (!rect) rect = card.getBoundingClientRect();   // letto 1 volta per hover, non ad ogni movimento
+      const px = (lastE.clientX - rect.left) / rect.width;
+      const py = (lastE.clientY - rect.top) / rect.height;
       card.style.setProperty('--mx', px * 100 + '%');
       card.style.setProperty('--my', py * 100 + '%');
-      if (card.classList.contains('tilt') && !reduceMotion) {
-        card.style.transform = `perspective(900px) rotateY(${(px - 0.5) * 6}deg) rotateX(${(0.5 - py) * 6}deg) translateY(-3px)`;
-      }
+      if (tilt) card.style.transform = `perspective(900px) rotateY(${(px - 0.5) * 6}deg) rotateX(${(0.5 - py) * 6}deg) translateY(-3px)`;
+    }
+    card.addEventListener('pointerenter', () => { rect = card.getBoundingClientRect(); });
+    card.addEventListener('pointermove', (e) => {
+      lastE = e;
+      if (!scheduled) { scheduled = true; requestAnimationFrame(apply); }   // throttle: 1 update per frame
     });
-    card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+    card.addEventListener('pointerleave', () => { lastE = null; rect = null; card.style.transform = ''; });
+  });
+
+  /* ---------- COPERTINE PROGETTI STATICHE: ferma le animazioni SMIL delle thumbnail (0 costo per-frame) ---------- */
+  document.querySelectorAll('.thumb-svg').forEach((s) => {
+    try { s.setCurrentTime(2.6); s.pauseAnimations(); } catch (e) {}   // congela su un fotogramma "pieno" e ferma la timeline
   });
 
   /* ---------- TOAST (wireframe / layout) ---------- */
@@ -292,4 +342,27 @@
       showToast(name, 'Case study in arrivo ✦');
     });
   });
+
+  /* ---------- CONTATORE FPS a schermo (sempre visibile) ---------- */
+  const fpsEl = document.createElement('div');
+  fpsEl.id = 'fpsMeter';
+  fpsEl.setAttribute('aria-hidden', 'true');
+  fpsEl.textContent = '— FPS';
+  document.body.appendChild(fpsEl);
+  (() => {
+    let frames = 0, acc = 0, prev = performance.now(), worst = 0;
+    function loop(now) {
+      const d = now - prev; prev = now;
+      frames++; acc += d;
+      if (d > worst) worst = d;          // frame piu' lento dell'intervallo = spia di jank
+      if (acc >= 500) {                  // aggiorna 2 volte al secondo
+        const fps = Math.round((frames * 1000) / acc);
+        fpsEl.textContent = fps + ' FPS · ' + worst.toFixed(0) + 'ms';
+        fpsEl.style.color = fps >= 55 ? '#5ff3ff' : fps >= 30 ? '#ffd27a' : '#ff6e6e';
+        frames = 0; acc = 0; worst = 0;
+      }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
 })();

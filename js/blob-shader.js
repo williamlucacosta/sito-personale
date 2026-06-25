@@ -14,6 +14,7 @@
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce || !window.Curtains || !heroBlob || !stage) return;  // resta l'immagine
+  if (window.matchMedia('(max-width: 760px)').matches) return;    // su telefono: blob statico, niente shader (GPU mobile)
 
   const vertexShader = `
     precision mediump float;
@@ -66,7 +67,7 @@
     }
     float fbm(vec2 p){
       float val = 0.0, amp = 0.5, freq = 1.0;
-      for (int i = 0; i < 3; i++){        // 3 ottave: 1 in meno = -25% noise, dettaglio fine quasi identico
+      for (int i = 0; i < 2; i++){        // 2 ottave: piu' leggero, il dettaglio fine si perde sotto al blur/glow
         val  += amp * snoise(p * freq);
         freq *= 2.0; amp *= 0.5;
       }
@@ -140,7 +141,7 @@
       container: heroBlob,
       alpha: true,
       premultipliedAlpha: false,
-      pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),   // blob enorme: 1.5 basta, -44% pixel da shadare
+      pixelRatio: Math.min(window.devicePixelRatio || 1, 1.25),   // blob enorme + sfocato: 1.25 basta, meno pixel da shadare
       watchScroll: false,   // il canvas è nel flusso pagina: niente doppio scroll
     });
   } catch (e) { return; }                       // niente WebGL → resta l'immagine
