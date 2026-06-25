@@ -86,13 +86,6 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 .progress-bar{position:fixed;top:0;left:0;right:0;height:2px;z-index:200;background:transparent}
 .progress-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--blue),var(--violet));box-shadow:0 0 12px var(--blue-soft)}
 
-/* contatore FPS a schermo (debug) */
-#fpsMeter{position:fixed;left:12px;bottom:12px;z-index:300;pointer-events:none;
-  font-family:var(--mono);font-size:12px;font-weight:700;line-height:1;letter-spacing:.03em;
-  color:#5ff3ff;background:rgba(6,8,18,.72);border:1px solid rgba(120,140,255,.22);
-  padding:6px 9px;border-radius:8px;backdrop-filter:blur(4px);font-variant-numeric:tabular-nums;
-  box-shadow:0 4px 16px rgba(0,0,10,.5)}
-
 /* ============ UTILS ============ */
 .container{width:var(--shell);margin:0 auto;padding-inline:var(--gutter)}
 .glass{

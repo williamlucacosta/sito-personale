@@ -342,27 +342,4 @@
       showToast(name, 'Case study in arrivo ✦');
     });
   });
-
-  /* ---------- CONTATORE FPS a schermo (sempre visibile) ---------- */
-  const fpsEl = document.createElement('div');
-  fpsEl.id = 'fpsMeter';
-  fpsEl.setAttribute('aria-hidden', 'true');
-  fpsEl.textContent = '— FPS';
-  document.body.appendChild(fpsEl);
-  (() => {
-    let frames = 0, acc = 0, prev = performance.now(), worst = 0;
-    function loop(now) {
-      const d = now - prev; prev = now;
-      frames++; acc += d;
-      if (d > worst) worst = d;          // frame piu' lento dell'intervallo = spia di jank
-      if (acc >= 500) {                  // aggiorna 2 volte al secondo
-        const fps = Math.round((frames * 1000) / acc);
-        fpsEl.textContent = fps + ' FPS · ' + worst.toFixed(0) + 'ms';
-        fpsEl.style.color = fps >= 55 ? '#5ff3ff' : fps >= 30 ? '#ffd27a' : '#ff6e6e';
-        frames = 0; acc = 0; worst = 0;
-      }
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-  })();
 })();
