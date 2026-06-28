@@ -99,13 +99,13 @@
 
       vec2  warp = flow * 0.006 + morph * 0.012 + rippleDir * ripple * 0.006;
 
-      // shimmer cromatico sottile
+      // shimmer cromatico sottile (3 lookup invece di 4: verde+alpha dallo stesso tap)
       vec2 ca = warp * 0.08 + rippleDir * ripple * 0.0015;
-      float r  = texture2D(uTexture, uv + warp + ca).r;
-      float g2 = texture2D(uTexture, uv + warp).g;
-      float b  = texture2D(uTexture, uv + warp - ca).b;
-      float a  = texture2D(uTexture, uv + warp).a;
-      vec4  tex = vec4(r, g2, b, a);
+      vec2 baseUV = uv + warp;
+      vec2 ga = texture2D(uTexture, baseUV).ga;
+      float r  = texture2D(uTexture, baseUV + ca).r;
+      float b  = texture2D(uTexture, baseUV - ca).b;
+      vec4  tex = vec4(r, ga.x, b, ga.y);
 
       // energia: accende il blu degli anelli e pulsa
       float blueness = clamp(tex.b - max(tex.r, tex.g) * 0.9, 0.0, 1.0);
@@ -117,13 +117,9 @@
       glow += energyColor * blueness * exp(-dist * 4.0) * 0.45;
       vec3 color = tex.rgb + glow;
 
-      // alpha morbida dal PNG (lo sfondo esterno è già stato rimosso a monte; buco e anelli restano)
-      float aSoft = tex.a
-        + texture2D(uTexture, uv + warp + vec2( 0.006, 0.0)).a
-        + texture2D(uTexture, uv + warp + vec2(-0.006, 0.0)).a
-        + texture2D(uTexture, uv + warp + vec2( 0.0,  0.006)).a
-        + texture2D(uTexture, uv + warp + vec2( 0.0, -0.006)).a;
-      aSoft *= 0.2;
+      // alpha: riuso quella gia' campionata (il blur CSS + la dissolvenza radiale ammorbidiscono i bordi).
+      // Prima erano 4 lookup texture extra per pixel solo per sfumare l'alpha: tolti = molta meno banda GPU.
+      float aSoft = tex.a;
 
       // soft-fade ai margini del piano
       float edge = smoothstep(0.0, 0.03, uv0.x) * smoothstep(1.0, 0.97, uv0.x)
@@ -141,7 +137,7 @@
       container: heroBlob,
       alpha: true,
       premultipliedAlpha: false,
-      pixelRatio: Math.min(window.devicePixelRatio || 1, 1.25),   // blob enorme + sfocato: 1.25 basta, meno pixel da shadare
+      pixelRatio: Math.min(window.devicePixelRatio || 1, 1.0),    // blob enorme + sfocato: 1.0 basta (meno frammenti = molta meno GPU)
       watchScroll: false,   // il canvas è nel flusso pagina: niente doppio scroll
     });
   } catch (e) { return; }                       // niente WebGL → resta l'immagine
@@ -161,7 +157,7 @@
   if (!plane) return;
 
   // mouse → UV normalizzate (0..1, y verso l'alto), smussato
-  let tmx = 0.5, tmy = 0.55, cmx = 0.5, cmy = 0.55;
+  let tmx = 0.5, tmy = 0.55, cmx = 0.5, cmy = 0.55, tPrev = 0;
   window.addEventListener('pointermove', (e) => {
     const r = plane.getBoundingRect();
     tmx = (e.clientX - r.left) / r.width;
@@ -174,24 +170,39 @@
       heroBlob.classList.add('is-shaded');
       const r = plane.getBoundingRect();
       plane.uniforms.uResolution.value = [r.width, r.height];
+      curtains.disableDrawing();                   // da qui i frame li guidiamo noi a fps cappati (vedi sotto)
     })
     .onRender(() => {
-      plane.uniforms.uTime.value += 1 / 60;       // <-- tempo che scorre sempre
+      const now = performance.now();
+      const dt = tPrev ? Math.min((now - tPrev) / 1000, 0.05) : 1 / 60;
+      tPrev = now;
+      plane.uniforms.uTime.value += dt;            // dt reale: la velocita' del morph non dipende dagli fps
       cmx += (tmx - cmx) * 0.08;
       cmy += (tmy - cmy) * 0.08;
       plane.uniforms.uMouse.value = [cmx, cmy];
     });
 
-  // pausa lo shader quando la hero non e' visibile: lo shader (fbm) e' la cosa piu' pesante,
-  // inutile farlo girare mentre scorri i contenuti. Riprende rientrando nella hero.
+  // FPS CAP: lo shader e' la cosa piu' pesante. Invece del refresh nativo (su 144Hz = 144 frame/s),
+  // guidiamo noi i frame a ~40fps con needRender(), e SOLO quando la hero e' a schermo e il tab e' attivo.
+  // (curtains.disableDrawing() viene chiamato in onReady)
+  const BLOB_MS = 1000 / 40;
+  let heroVisible = true, tabVisible = true, blobRaf = 0, blobLast = 0;
+  function blobLoop(t) {
+    blobRaf = requestAnimationFrame(blobLoop);
+    if (t - blobLast < BLOB_MS) return;
+    blobLast = t;
+    try { curtains.needRender(); } catch (e) {}
+  }
+  function syncBlob() {
+    const run = heroVisible && tabVisible;
+    if (run && !blobRaf) { blobLast = 0; tPrev = 0; blobRaf = requestAnimationFrame(blobLoop); }
+    else if (!run && blobRaf) { cancelAnimationFrame(blobRaf); blobRaf = 0; }
+  }
   const heroEl = document.getElementById('home') || heroBlob;
   if ('IntersectionObserver' in window) {
-    new IntersectionObserver((entries) => {
-      const vis = entries[0].isIntersecting;
-      try { vis ? curtains.enableDrawing() : curtains.disableDrawing(); } catch (e) {}
-    }, { rootMargin: '120px' }).observe(heroEl);
+    new IntersectionObserver((entries) => { heroVisible = entries[0].isIntersecting; syncBlob(); },
+      { rootMargin: '120px' }).observe(heroEl);
   }
-  document.addEventListener('visibilitychange', () => {   // e quando il tab e' nascosto
-    try { document.hidden ? curtains.disableDrawing() : curtains.enableDrawing(); } catch (e) {}
-  });
+  document.addEventListener('visibilitychange', () => { tabVisible = !document.hidden; syncBlob(); });
+  syncBlob();
 })();

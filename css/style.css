@@ -3,7 +3,7 @@
    ============================================================ */
 :root{
   --bg:#04060f;
-  --bg-card:rgba(10,14,30,.55);
+  --bg-card:rgba(10,14,30,.66);
   --border:rgba(120,140,255,.14);
   --border-hover:rgba(120,160,255,.45);
   --text:#c9d2e6;
@@ -93,9 +93,11 @@ html{scrollbar-width:none;-ms-overflow-style:none}
     linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,0) 42%),
     var(--bg-card);
   border:1px solid var(--border);
-  backdrop-filter:blur(6px) saturate(122%);
-  -webkit-backdrop-filter:blur(6px) saturate(122%);
+  /* niente backdrop-filter: era su 13 pannelli e ri-sfocava lo sfondo (animato!) ad OGNI frame di
+     scroll = causa principale del lag. Il pannello resta leggibile con --bg-card piu' opaco. */
 }
+/* frost mantenuto solo sulla nav: 1 solo elemento fisso, costo trascurabile */
+.nav.glass{backdrop-filter:blur(8px) saturate(120%);-webkit-backdrop-filter:blur(8px) saturate(120%)}
 .grad-text{background:var(--grad-title);-webkit-background-clip:text;background-clip:text;color:transparent}
 
 /* reveal allo scroll */
@@ -243,17 +245,29 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 
 .hero__sub{color:var(--text);font-size:16px;max-width:560px;margin-bottom:0;text-shadow:0 2px 18px rgba(0,0,10,.8)}
 .hero__cta{display:flex;gap:16px;flex-wrap:wrap;margin-top:42px}
-/* indicatore scroll ancorato in fondo alla view, centrato via flex (ingresso autonomo:
-   non usa .reveal perché cadrebbe nella zona morta dell'IntersectionObserver) */
+/* indicatore scroll ancorato in fondo alla view, centrato via flex.
+   Visibile solo in cima: compare/scompare in base alla posizione di scroll (toggle .is-visible da JS). */
 .hero__scroll{
   position:absolute;left:0;right:0;bottom:30px;
   display:flex;flex-direction:column;gap:9px;align-items:center;text-align:center;z-index:3;
   font-size:10px;letter-spacing:.26em;color:var(--text-dim);line-height:1.4;
-  animation:scrollHint 1s var(--ease) 1s both;
+  opacity:0;transform:translateY(12px);pointer-events:none;
+  transition:opacity .45s var(--ease),transform .45s var(--ease);
 }
-@keyframes scrollHint{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.hero__scroll svg{animation:scrollBob 1.8s ease-in-out infinite;color:var(--cyan)}
-@keyframes scrollBob{0%,100%{transform:translateY(-3px)}50%{transform:translateY(4px)}}
+.hero__scroll.is-visible{opacity:1;transform:translateY(0)}
+/* cometa che discende lungo una scia: metafora di scroll a tema spazio */
+.scroll-comet{position:relative;width:2px;height:30px;margin-top:14px;border-radius:2px;
+  background:linear-gradient(180deg,transparent,rgba(94,243,255,.16) 32%,rgba(94,243,255,.32) 50%,rgba(94,243,255,.16) 68%,transparent)}
+.scroll-comet i{position:absolute;left:50%;top:0;width:4px;height:4px;margin-left:-2px;border-radius:50%;
+  background:var(--cyan);box-shadow:0 0 6px 1px rgba(94,243,255,.9),0 0 13px 3px rgba(94,243,255,.4);
+  animation:cometFall 2.4s cubic-bezier(.5,0,.2,1) infinite}
+.scroll-comet i::before{content:"";position:absolute;left:50%;bottom:3px;width:2px;height:13px;margin-left:-1px;border-radius:2px;
+  background:linear-gradient(180deg,transparent,rgba(94,243,255,.7))}
+@keyframes cometFall{0%{transform:translateY(-7px);opacity:0}18%{opacity:1}82%{opacity:1}100%{transform:translateY(30px);opacity:0}}
+/* la scritta "respira" in sync con la cometa */
+.scroll-label{animation:scrollLabelPulse 2.4s ease-in-out infinite}
+@keyframes scrollLabelPulse{0%,100%{opacity:.45}50%{opacity:1;text-shadow:0 0 10px rgba(94,243,255,.35)}}
+@media (prefers-reduced-motion:reduce){.scroll-comet i{animation:none;top:auto;bottom:8px;opacity:.9}.scroll-label{animation:none;opacity:.8}}
 
 /* ============ BLOB (hero) — texture animata via shader WebGL ============ */
 .hero__blob{
@@ -276,7 +290,9 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 /* shader attivo: la sorgente è nascosta, il canvas WebGL disegna il blob */
 .hero__blob.is-shaded .blob-img{opacity:0}
 .hero__blob canvas{
-  filter:blur(1.2px) drop-shadow(0 0 34px rgba(50,100,255,.45)) drop-shadow(0 0 100px rgba(80,55,210,.28));
+  /* un solo drop-shadow moderato invece di 34px+100px: prima venivano ricalcolati ad OGNI frame
+     dello shader su un'area enorme (fino a 168vw). L'alone esterno lo dà .hero__blob-glow. */
+  filter:blur(1.2px) drop-shadow(0 0 46px rgba(60,95,255,.4));
   mix-blend-mode:screen;
   opacity:0;transition:opacity .6s var(--ease);     /* nascosto finché lo shader non è pronto */
 }
@@ -288,8 +304,9 @@ html{scrollbar-width:none;-ms-overflow-style:none}
   position:absolute;inset:0%;
   background:radial-gradient(ellipse at 54% 48%,rgba(60,110,255,.44) 0%,rgba(120,70,255,.18) 40%,transparent 68%);
   filter:blur(42px);
-  animation:glowPulse 6s ease-in-out infinite;
+  animation:blobGlowPulse 6s ease-in-out infinite;   /* solo opacita': niente scale = il blur 42px non si ri-rasterizza ogni frame */
 }
+@keyframes blobGlowPulse{0%,100%{opacity:.7}50%{opacity:1}}
 @keyframes glowPulse{0%,100%{opacity:.7;scale:1}50%{opacity:1;scale:1.08}}
 
 /* ============ SEZIONI ============ */

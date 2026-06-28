@@ -221,6 +221,8 @@
   const dotLinks = [...document.querySelectorAll('.dotnav a')];
   const dotSections = dotLinks.map((a) => document.querySelector(a.getAttribute('href')));
   let lastY = 0;
+  const heroScroll = document.querySelector('.hero__scroll');
+  let heroHintVis = null;
   /* cache di layout: leggere scrollHeight/offsetTop ad ogni scroll = layout thrashing (reflow sincrono).
      Misuriamo una volta (e su resize/load/font); lo scroll handler fa solo aritmetica. */
   let vh = window.innerHeight, pageMax = 0, secOffsets = [], dotOffsets = [];
@@ -236,6 +238,11 @@
     const y = window.scrollY;
     navWrap.classList.toggle('is-hidden', y > 500 && y > lastY);
     lastY = y;
+    // hint scroll: visibile solo in cima; sparisce appena si scrolla, riappare risalendo
+    if (heroScroll) {
+      const show = y < 200;                       // ~2 scroll: resta oltre il primo, sparisce/riappare dopo il secondo
+      if (show !== heroHintVis) { heroScroll.classList.toggle('is-visible', show); heroHintVis = show; }
+    }
     progressFill.style.width = (pageMax > 0 ? Math.min(y / pageMax, 1) * 100 : 0) + '%';
     // in fondo l'ultima sezione (Contatti) e' troppo corta per raggiungere la soglia: forzala attiva
     const atBottom = pageMax > 0 && y >= pageMax - 2;
