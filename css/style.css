@@ -269,6 +269,37 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 @keyframes scrollLabelPulse{0%,100%{opacity:.45}50%{opacity:1;text-shadow:0 0 10px rgba(94,243,255,.35)}}
 @media (prefers-reduced-motion:reduce){.scroll-comet i{animation:none;top:auto;bottom:8px;opacity:.9}.scroll-label{animation:none;opacity:.8}}
 
+/* ===== WARP: glitch + shake "teletrasporto quantistico" sul click dei link nav ===== */
+#warp{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:0;overflow:hidden}
+#warp.is-on{animation:warpFlash .46s steps(1,end) forwards}
+@keyframes warpFlash{
+  0%{opacity:0}
+  6%{opacity:1;background:rgba(150,220,255,.12)}
+  14%{background:transparent}
+  48%{opacity:1}
+  64%{opacity:.5}
+  100%{opacity:0;background:transparent}
+}
+#warp i{position:absolute;left:-4%;right:-4%;height:36%;opacity:0;mix-blend-mode:screen;
+  background:repeating-linear-gradient(0deg,rgba(95,243,255,.16) 0 2px,transparent 2px 5px)}
+#warp.is-on i{opacity:1}
+#warp i:nth-child(1){top:-2%;animation:warpBandA .46s steps(6,end)}
+#warp i:nth-child(2){top:33%;background:repeating-linear-gradient(0deg,rgba(255,70,160,.15) 0 2px,transparent 2px 6px);animation:warpBandB .46s steps(5,end)}
+#warp i:nth-child(3){top:66%;animation:warpBandA .46s steps(7,end) reverse}
+@keyframes warpBandA{0%,100%{transform:translateX(0)}20%{transform:translateX(-22px)}40%{transform:translateX(16px)}60%{transform:translateX(-10px)}80%{transform:translateX(18px)}}
+@keyframes warpBandB{0%,100%{transform:translateX(0)}25%{transform:translateX(26px)}50%{transform:translateX(-18px)}75%{transform:translateX(12px)}}
+body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
+@keyframes warpShake{
+  0%,100%{transform:none}
+  10%{transform:translate(-3px,2px) skewX(-.6deg)}
+  22%{transform:translate(4px,-3px) skewX(.5deg)}
+  36%{transform:translate(-5px,1px)}
+  52%{transform:translate(3px,3px) skewX(-.4deg)}
+  68%{transform:translate(-2px,-2px) skewX(.3deg)}
+  84%{transform:translate(2px,1px)}
+}
+@media (prefers-reduced-motion:reduce){#warp,body.is-warping main{animation:none!important}}
+
 /* ============ BLOB (hero) — texture animata via shader WebGL ============ */
 .hero__blob{
   position:absolute;z-index:0;
@@ -310,9 +341,10 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 @keyframes glowPulse{0%,100%{opacity:.7;scale:1}50%{opacity:1;scale:1.08}}
 
 /* ============ SEZIONI ============ */
-/* content-visibility: il browser salta layout/paint delle sezioni fuori schermo.
-   La keyword 'auto' memorizza l'altezza reale dopo il primo render -> niente salti. */
-.section{padding:110px 0 30px;position:relative;content-visibility:auto;contain-intrinsic-size:auto 900px}
+/* niente content-visibility:auto: rinviava il render delle sezioni fuori schermo causando
+   (1) misure di altezza errate -> pageMax sovrastimato -> ultimo dot/sezione attivato in ritardo,
+   (2) micro-scatti quando una sezione entrava in vista. Le sezioni sono statiche e leggere: si tengono renderizzate. */
+.section{padding:110px 0 30px;position:relative}
 .section__label{
   font-family:var(--mono);font-weight:600;font-size:15px;
   letter-spacing:.14em;color:var(--cyan);margin-bottom:30px;

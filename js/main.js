@@ -11,8 +11,7 @@
       lerp: 0.085,
       smoothWheel: true,
       wheelMultiplier: 1,
-      touchMultiplier: 1.6,
-      anchors: true,                       // gestisce i link #ancora con scroll fluido
+      touchMultiplier: 1.6,                // anchors gestiti a mano (effetto warp/teletrasporto sui link nav)
     });
     document.documentElement.style.scrollBehavior = 'auto';
     lenis.on('scroll', (e) => { scrollVel = e.velocity; });
@@ -133,7 +132,7 @@
   const heroContent = document.querySelector('.hero__content');
   const heroBlobEl = document.getElementById('heroBlob');
 
-  let rafId = 0, auroraLast = -1e9, lastOut = -1, lastRender = 0;
+  let rafId = 0, auroraLast = -1e9, lastBlobY = -1, lastRender = 0;
   const RENDER_MS = 1000 / 62;   // cap del lavoro pesante (stelle/aurora/parallasse) a ~60fps anche su monitor 120/144/180Hz
   // watchdog adattivo: misura i primi ~2.6s; se il device arranca, scende di un tier
   let wdT0 = 0, wdFrames = 0, wdSlow = 0, adapted = false, prevT = 0;
@@ -172,10 +171,11 @@
       el.style.translate = `${smX * m}px ${smY * m * 0.7}px`;
     }
 
-    /* hero: uscita cinematica allo scroll (skip se gia' fuori vista: niente scritture inutili) */
-    const out = Math.min(scrollY / (window.innerHeight * 0.85), 1);
-    if (out !== lastOut) {
-      lastOut = out;
+    /* hero: uscita cinematica + parallasse blob. Gate sul cambio di scrollY (non di 'out'):
+       cosi' dopo un teleport il blob si riposiziona SUBITO invece di restare fermo dov'era. */
+    if (scrollY !== lastBlobY) {
+      lastBlobY = scrollY;
+      const out = Math.min(scrollY / (window.innerHeight * 0.85), 1);
       if (heroContent) {
         heroContent.style.opacity = String(1 - out);
         heroContent.style.transform = `translateY(${out * -46}px)`;
@@ -220,7 +220,6 @@
   const sections = links.map((a) => document.querySelector(a.getAttribute('href')));
   const dotLinks = [...document.querySelectorAll('.dotnav a')];
   const dotSections = dotLinks.map((a) => document.querySelector(a.getAttribute('href')));
-  let lastY = 0;
   const heroScroll = document.querySelector('.hero__scroll');
   let heroHintVis = null;
   /* cache di layout: leggere scrollHeight/offsetTop ad ogni scroll = layout thrashing (reflow sincrono).
@@ -236,8 +235,7 @@
 
   function updateScroll() {
     const y = window.scrollY;
-    navWrap.classList.toggle('is-hidden', y > 500 && y > lastY);
-    lastY = y;
+    // navbar sempre visibile (nessuna logica hide-on-scroll)
     // hint scroll: visibile solo in cima; sparisce appena si scrolla, riappare risalendo
     if (heroScroll) {
       const show = y < 200;                       // ~2 scroll: resta oltre il primo, sparisce/riappare dopo il secondo
@@ -245,7 +243,7 @@
     }
     progressFill.style.width = (pageMax > 0 ? Math.min(y / pageMax, 1) * 100 : 0) + '%';
     // in fondo l'ultima sezione (Contatti) e' troppo corta per raggiungere la soglia: forzala attiva
-    const atBottom = pageMax > 0 && y >= pageMax - 2;
+    const atBottom = pageMax > 0 && y >= pageMax - vh * 0.12;   // margine ampio: l'ultima sezione/dot scatta appena vicino al fondo (no attesa dell'inerzia Lenis)
 
     let current = -1;
     const t1 = vh * 0.4;
@@ -288,7 +286,46 @@
   const burger = document.querySelector('.nav__burger');
   const nav = document.querySelector('.nav');
   burger.addEventListener('click', () => nav.classList.toggle('is-open'));
-  links.forEach((a) => a.addEventListener('click', () => nav.classList.remove('is-open')));
+
+  /* ---------- WARP: glitch/shake "teletrasporto quantistico" sui link di navigazione ---------- */
+  const warpEl = document.createElement('div');
+  warpEl.id = 'warp'; warpEl.setAttribute('aria-hidden', 'true');
+  warpEl.innerHTML = '<i></i><i></i><i></i>';
+  document.body.appendChild(warpEl);
+
+  function scrollToHash(hash, instant) {
+    const target = document.querySelector(hash);
+    if (!target) return;
+    const off = -((navWrap ? navWrap.offsetHeight : 0) + 8);   // non finire sotto la navbar fissa
+    if (lenis) lenis.scrollTo(target, { offset: off, immediate: !!instant, duration: instant ? 0 : 1.0 });
+    else {
+      const top = target.getBoundingClientRect().top + window.scrollY + off;
+      window.scrollTo({ top, behavior: instant ? 'auto' : 'smooth' });
+    }
+  }
+
+  let warpT1, warpT2;
+  function warpTo(hash) {
+    if (reduceMotion) { scrollToHash(hash, false); return; }
+    warpEl.classList.remove('is-on'); void warpEl.offsetWidth;   // forza il restart dell'animazione
+    warpEl.classList.add('is-on');
+    document.body.classList.add('is-warping');
+    clearTimeout(warpT1); clearTimeout(warpT2);
+    warpT1 = setTimeout(() => scrollToHash(hash, true), 150);    // salto ISTANTANEO a meta' glitch = teletrasporto
+    warpT2 = setTimeout(() => { warpEl.classList.remove('is-on'); document.body.classList.remove('is-warping'); }, 470);
+  }
+
+  // warp sui link di navigazione (nav + dot-nav); gli altri ancora #(CTA/footer) fanno scroll fluido normale
+  const warpSet = new Set([...document.querySelectorAll('.nav a[href^="#"], .dotnav a[href^="#"]')]);
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const hash = a.getAttribute('href');
+      if (!hash || hash === '#' || !document.querySelector(hash)) return;
+      e.preventDefault();
+      nav.classList.remove('is-open');
+      warpSet.has(a) ? warpTo(hash) : scrollToHash(hash, false);
+    });
+  });
 
   /* ---------- CARD: spotlight + tilt 3D, agganciato a rAF (max 1 calcolo per frame) ---------- */
   document.querySelectorAll('.card').forEach((card) => {
