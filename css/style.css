@@ -490,17 +490,6 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
 .card:hover .chip{border-color:rgba(120,160,255,.4)}
 .chip:hover{color:#fff;border-color:var(--cyan);box-shadow:0 0 14px rgba(95,243,255,.28);transform:translateY(-2px)}
 
-/* ticker */
-.ticker{margin-top:18px;border-radius:30px;overflow:hidden;position:relative;padding:14px 0;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
-}
-.ticker__track{display:flex;gap:34px;width:max-content;animation:tickerScroll 36s linear infinite}
-.ticker:hover .ticker__track{animation-play-state:paused}
-.ticker__track span{font-size:13px;letter-spacing:.2em;color:#dfe6ff;text-shadow:0 0 14px rgba(95,130,255,.5)}
-.ticker__track i{color:var(--blue-soft);font-style:normal}
-@keyframes tickerScroll{to{transform:translateX(-50%)}}
-
 /* ============ PROGETTI ============ */
 .projects-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
 .project{padding:14px 14px 18px;display:flex;flex-direction:column;overflow:hidden}
@@ -531,18 +520,6 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
 .project__body p{font-size:12px;color:var(--text-dim);line-height:1.65}
 .project__chips{margin-top:11px}
 .project__chips .chip{padding:3px 8px;font-size:10.5px;border-radius:7px}
-.project__plus{
-  position:absolute;right:14px;bottom:14px;width:32px;height:32px;border-radius:50%;z-index:4;
-  border:1px solid rgba(120,150,255,.35);background:rgba(20,28,60,.6);color:#cfd9ff;
-  font-size:17px;line-height:1;display:grid;place-items:center;
-  transition:.35s var(--ease);
-}
-.project__plus::after{
-  content:"";position:absolute;inset:-1px;border-radius:50%;
-  border:1px solid rgba(95,243,255,.6);opacity:0;
-}
-.project:hover .project__plus::after{animation:pulseRing 2.2s var(--ease) infinite}
-.project__plus:hover{background:var(--blue);border-color:var(--blue-soft);transform:rotate(90deg) scale(1.12);box-shadow:0 0 20px rgba(42,70,255,.7)}
 
 /* overlay wireframe/layout */
 .project__overlay{
@@ -818,14 +795,37 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
 }
 .hud__mod:hover::before{opacity:1}
 .hud__mod-ico{
-  width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--blue-soft);
-  background:linear-gradient(150deg,rgba(60,90,255,.18),rgba(42,70,255,.06));
-  border:1px solid rgba(90,120,255,.25);box-shadow:inset 0 0 14px rgba(60,90,255,.14);
+  width:40px;height:40px;border-radius:11px;display:grid;place-items:center;
+  color:var(--mod,var(--blue-soft));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--mod,#3c5aff) 20%,transparent),color-mix(in srgb,var(--mod,#2a46ff) 5%,transparent));
+  border:1px solid color-mix(in srgb,var(--mod,#5a78ff) 32%,transparent);
+  box-shadow:inset 0 0 14px color-mix(in srgb,var(--mod,#3c5aff) 16%,transparent);
   transition:color .3s,border-color .3s,box-shadow .3s;
 }
-.hud__mod:hover .hud__mod-ico{color:var(--cyan);border-color:rgba(95,243,255,.45);box-shadow:inset 0 0 16px rgba(95,243,255,.2),0 0 18px rgba(60,120,255,.3)}
-.hud__mod-name{font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:#dce6ff}
+.hud__mod:hover .hud__mod-ico{
+  color:color-mix(in srgb,var(--mod,var(--cyan)) 78%,#fff);
+  border-color:color-mix(in srgb,var(--mod,var(--cyan)) 55%,transparent);
+  box-shadow:inset 0 0 16px color-mix(in srgb,var(--mod,var(--cyan)) 24%,transparent),0 0 20px color-mix(in srgb,var(--mod,var(--cyan)) 34%,transparent);
+}
+.hud__mod-name{font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mod,#dce6ff);text-shadow:0 0 18px color-mix(in srgb,var(--mod,transparent) 28%,transparent)}
 .hud__mod .chips{margin-top:0}
+/* palette per macro-area: ogni modulo ha un suo colore (icona + nome) */
+.hud__mod:nth-child(1){--mod:#56e1f0} /* Front-End  · ciano   */
+.hud__mod:nth-child(2){--mod:#5f8bf5} /* Back-End   · azzurro */
+.hud__mod:nth-child(3){--mod:#9d7bf0} /* AI Eng     · viola   */
+.hud__mod:nth-child(4){--mod:#d873d6} /* Game Dev   · magenta */
+.hud__mod:nth-child(5){--mod:#e0a25f} /* Grafica 3D · ambra   */
+.hud__mod:nth-child(6){--mod:#5fd6a0} /* Tools      · menta   */
+/* chip: a riposo neutre (arretrano), in hover prendono il colore dell'area */
+.hud__mod .chip{
+  background:linear-gradient(180deg,rgba(150,170,210,.10),rgba(150,170,210,.03));
+  border-color:rgba(150,170,210,.18);color:#aeb9d4;
+}
+.hud__mod .chip:hover{
+  color:#fff;
+  border-color:color-mix(in srgb,var(--mod,var(--cyan)) 60%,transparent);
+  box-shadow:0 0 14px color-mix(in srgb,var(--mod,var(--cyan)) 30%,transparent);
+}
 @media(max-width:760px){
   .hud__pad{padding:24px 22px}
   .hud__mod{grid-template-columns:34px 1fr;gap:12px 14px}
@@ -873,11 +873,9 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
 #progetti .project:hover::after{opacity:.95}
 /* strati a profondita' diversa: si sollevano col tilt del mouse (parallasse vera) */
 #progetti .project__thumb,
-#progetti .project__body,
-#progetti .project__plus{transition:transform .5s var(--ease),box-shadow .4s,border-color .4s}
+#progetti .project__body{transition:transform .5s var(--ease),box-shadow .4s,border-color .4s}
 #progetti .project:hover .project__thumb{transform:translateZ(52px)}
 #progetti .project:hover .project__body{transform:translateZ(26px)}
-#progetti .project:hover .project__plus{transform:translateZ(66px)}
 #progetti .project:hover{box-shadow:0 40px 80px -34px rgba(0,0,20,.9),0 0 60px rgba(60,90,255,.18)}
 /* barra header da terminale in cima a ogni card */
 .proj__bar{

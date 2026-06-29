@@ -380,10 +380,4 @@
     });
   });
 
-  document.querySelectorAll('.project__plus').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const name = btn.closest('.project').querySelector('h3').textContent;
-      showToast(name, 'Case study in arrivo ✦');
-    });
-  });
 })();
