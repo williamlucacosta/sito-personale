@@ -62,7 +62,8 @@
   const ctx = canvas.getContext('2d');
   let stars = [], W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   let scrollY = 0, mouseX = 0, mouseY = 0, smX = 0, smY = 0;
-  let warp = 0;   // 0..1: intensita' warp-speed delle stelle, guidata dalla velocita' di scroll
+  let warp = 0;       // 0..1: intensita' warp-speed delle stelle, guidata dalla velocita' di scroll
+  let warpDir = 1;    // verso delle scie: +1 scroll giu' (testa in alto), -1 scroll su
 
   /* qualità adattiva: parte dal n. di core, poi un watchdog la corregge a runtime.
      Tutti gli effetti restano: cambia solo il NUMERO di stelle e il refresh aurora. */
@@ -80,6 +81,35 @@
     return c;
   }
   const starSprites = { 225: makeStarSprite(225), 195: makeStarSprite(195), 265: makeStarSprite(265) };
+
+  // sprite-scia per il warp: testa luminosa + coda affusolata che sfuma (look cometa, non blur)
+  function makeStreakSprite(hue, flip) {
+    const SW = 10, SH = 120, c = document.createElement('canvas'); c.width = SW; c.height = SH;
+    const x = c.getContext('2d');
+    const vg = x.createLinearGradient(0, 0, 0, SH);            // testa in alto -> lunga coda che sfuma
+    vg.addColorStop(0, `hsla(${hue},93%,91%,.95)`);
+    vg.addColorStop(0.06, `hsla(${hue},91%,84%,.8)`);
+    vg.addColorStop(0.4, `hsla(${hue},88%,76%,.28)`);
+    vg.addColorStop(1, `hsla(${hue},86%,70%,0)`);
+    x.fillStyle = vg; x.fillRect(0, 0, SW, SH);
+    x.globalCompositeOperation = 'destination-in';             // sfuma i bordi laterali (filo sottile, affusolato)
+    const hg = x.createLinearGradient(0, 0, SW, 0);
+    hg.addColorStop(0, 'rgba(0,0,0,0)'); hg.addColorStop(0.5, 'rgba(0,0,0,1)'); hg.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = hg; x.fillRect(0, 0, SW, SH);
+    x.globalCompositeOperation = 'lighter';                    // solo un accenno di testa, non un disco
+    const hd = x.createRadialGradient(SW / 2, SW * 0.42, 0, SW / 2, SW * 0.42, SW * 0.5);
+    hd.addColorStop(0, `hsla(${hue},96%,95%,.82)`); hd.addColorStop(1, `hsla(${hue},96%,95%,0)`);
+    x.fillStyle = hd; x.fillRect(0, 0, SW, SW);
+    if (!flip) return c;
+    const f = document.createElement('canvas'); f.width = SW; f.height = SH;   // testa in basso: ribalto
+    const fx = f.getContext('2d'); fx.translate(0, SH); fx.scale(1, -1); fx.drawImage(c, 0, 0);
+    return f;
+  }
+  const streakSprites = {
+    225: { up: makeStreakSprite(225, false), down: makeStreakSprite(225, true) },
+    195: { up: makeStreakSprite(195, false), down: makeStreakSprite(195, true) },
+    265: { up: makeStreakSprite(265, false), down: makeStreakSprite(265, true) },
+  };
 
   function starTarget() {
     const div = qTier >= 2 ? 7200 : qTier === 1 ? 5600 : 4200;
@@ -108,6 +138,7 @@
         tw: 0.5 + Math.random() * 2,               // velocità twinkle
         ph: Math.random() * Math.PI * 2,
         sprite: starSprites[hue],
+        streak: streakSprites[hue],                // scie warp (testa su/giu')
         sz: r * 3.4 + (depth > 0.85 ? 5 : 1.6),    // dimensione disco: l'alone è già nello sprite
       };
     });
@@ -115,6 +146,9 @@
 
   function drawStars(t) {
     ctx.clearRect(0, 0, W, H);
+    const warping = warp > 0.012;
+    const headUp = warpDir >= 0;
+    if (warping) ctx.globalCompositeOperation = 'lighter';   // scie additive: luce/energia, non blur
     for (const s of stars) {
       const par = s.depth * 0.35;
       let y = (s.y - scrollY * par) % H; if (y < 0) y += H;
@@ -122,16 +156,19 @@
       const a = s.base * (0.55 + 0.45 * Math.sin(t * 0.001 * s.tw + s.ph));
       const sz = s.sz;
       const cy = y + smY * s.depth * 12;
-      if (warp > 0.012) {                                 // WARP-SPEED: le stelle diventano scie verticali
-        const h = sz * (1 + warp * (5 + s.depth * 24));   // le vicine si allungano molto di piu' (profondita')
-        ctx.globalAlpha = a * (1 - warp * 0.22);
-        ctx.drawImage(s.sprite, x - sz * 0.5, cy - h * 0.5, sz, h);
+      if (warping) {                                          // WARP-SPEED: fili di luce sottili, direzionali
+        const w = Math.max(1.2, sz * 0.46);                   // fili sottili ma presenti
+        const h = sz * (1 + warp * (5 + s.depth * 28));       // lontane corte, vicine lunghe (profondita')
+        ctx.globalAlpha = Math.min(1, a * 0.95);              // piu' corpose
+        if (headUp) ctx.drawImage(s.streak.up,   x - w * 0.5, cy - sz * 0.5,     w, h);  // testa su, coda sotto
+        else        ctx.drawImage(s.streak.down, x - w * 0.5, cy + sz * 0.5 - h, w, h);  // testa giu', coda sopra
       } else {
         ctx.globalAlpha = a;
         ctx.drawImage(s.sprite, x - sz * 0.5, cy - sz * 0.5, sz, sz);
       }
     }
     ctx.globalAlpha = 1;
+    if (warping) ctx.globalCompositeOperation = 'source-over';
   }
 
   /* ---------- LOOP UNICO: stelle + parallasse scroll/mouse ---------- */
@@ -155,6 +192,7 @@
     scrollY = window.scrollY;
     // WARP-SPEED: ampiezza dalla velocita' di scroll Lenis, smussata; decade da sola quando ti fermi
     warp += (Math.min(Math.abs(scrollVel) / 55, 1) - warp) * 0.12;
+    if (Math.abs(scrollVel) > 1.5) warpDir = scrollVel < 0 ? -1 : 1;   // verso scie = verso scroll
     scrollVel *= 0.82;
 
     // aurora: sfocata -> ridisegno ~13-15fps, impercettibile
