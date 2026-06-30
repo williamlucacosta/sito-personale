@@ -62,6 +62,7 @@
   const ctx = canvas.getContext('2d');
   let stars = [], W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   let scrollY = 0, mouseX = 0, mouseY = 0, smX = 0, smY = 0;
+  let warp = 0;   // 0..1: intensita' warp-speed delle stelle, guidata dalla velocita' di scroll
 
   /* qualità adattiva: parte dal n. di core, poi un watchdog la corregge a runtime.
      Tutti gli effetti restano: cambia solo il NUMERO di stelle e il refresh aurora. */
@@ -120,8 +121,15 @@
       const x = (s.x + smX * s.depth * 22 + W) % W;
       const a = s.base * (0.55 + 0.45 * Math.sin(t * 0.001 * s.tw + s.ph));
       const sz = s.sz;
-      ctx.globalAlpha = a;
-      ctx.drawImage(s.sprite, x - sz * 0.5, y + smY * s.depth * 12 - sz * 0.5, sz, sz);
+      const cy = y + smY * s.depth * 12;
+      if (warp > 0.012) {                                 // WARP-SPEED: le stelle diventano scie verticali
+        const h = sz * (1 + warp * (5 + s.depth * 24));   // le vicine si allungano molto di piu' (profondita')
+        ctx.globalAlpha = a * (1 - warp * 0.22);
+        ctx.drawImage(s.sprite, x - sz * 0.5, cy - h * 0.5, sz, h);
+      } else {
+        ctx.globalAlpha = a;
+        ctx.drawImage(s.sprite, x - sz * 0.5, cy - sz * 0.5, sz, sz);
+      }
     }
     ctx.globalAlpha = 1;
   }
@@ -145,6 +153,9 @@
     smX += (mouseX - smX) * 0.045;
     smY += (mouseY - smY) * 0.045;
     scrollY = window.scrollY;
+    // WARP-SPEED: ampiezza dalla velocita' di scroll Lenis, smussata; decade da sola quando ti fermi
+    warp += (Math.min(Math.abs(scrollVel) / 55, 1) - warp) * 0.12;
+    scrollVel *= 0.82;
 
     // aurora: sfocata -> ridisegno ~13-15fps, impercettibile
     if (t - auroraLast >= (qTier >= 1 ? 75 : 64)) { drawAurora(t); auroraLast = t; }
