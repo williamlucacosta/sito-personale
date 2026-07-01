@@ -62,6 +62,8 @@
   const ctx = canvas.getContext('2d');
   let stars = [], W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   let scrollY = 0, mouseX = 0, mouseY = 0, smX = 0, smY = 0;
+  // cursore custom: dot istantaneo (aggiornato sull'evento), ring che insegue con inerzia nel loop rAF
+  let curX = 0, curY = 0, ringX = 0, ringY = 0, ringS = 1, ringTS = 1, curDot = null, curRing = null, curShown = false;
   let warp = 0;       // 0..1: intensita' warp-speed delle stelle, guidata dalla velocita' di scroll
   let warpDir = 1;    // verso delle scie: +1 scroll giu' (testa in alto), -1 scroll su
 
@@ -220,6 +222,14 @@
       el.style.translate = `${smX * m}px ${smY * m * 0.7}px`;
     }
 
+    // ring del cursore: insegue il dot con inerzia + scala eased (hover/click)
+    if (curRing) {
+      ringX += (curX - ringX) * 0.16;
+      ringY += (curY - ringY) * 0.16;
+      ringS += (ringTS - ringS) * 0.2;
+      curRing.style.transform = `translate3d(${ringX.toFixed(1)}px,${ringY.toFixed(1)}px,0) scale(${ringS.toFixed(3)})`;
+    }
+
     /* hero: uscita cinematica + parallasse blob. Gate sul cambio di scrollY (non di 'out'):
        cosi' dopo un teleport il blob si riposiziona SUBITO invece di restare fermo dov'era. */
     if (scrollY !== lastBlobY) {
@@ -242,6 +252,29 @@
     mouseX = (e.clientX / W - 0.5);
     mouseY = (e.clientY / H - 0.5);
   });
+  /* ---------- CURSORE CUSTOM: dot + anello a inerzia (solo mouse/trackpad precisi) ---------- */
+  if (!reduceMotion && window.matchMedia('(pointer:fine)').matches) {
+    curDot = document.createElement('div'); curDot.className = 'cursor-dot';
+    curRing = document.createElement('div'); curRing.className = 'cursor-ring';
+    document.body.append(curRing, curDot);
+    document.documentElement.classList.add('has-cursor');
+    window.addEventListener('pointermove', (e) => {
+      curX = e.clientX; curY = e.clientY;
+      if (!curShown) { curShown = true; ringX = curX; ringY = curY; curDot.style.opacity = curRing.style.opacity = '1'; }
+      curDot.style.transform = `translate3d(${curX}px,${curY}px,0)`;
+    });
+    // su elementi interattivi l'anello si apre e si accende
+    document.addEventListener('pointerover', (e) => {
+      const on = !!(e.target.closest && e.target.closest('a,button,summary'));
+      curRing.classList.toggle('is-link', on);
+      ringTS = on ? 1.5 : 1;
+    });
+    window.addEventListener('pointerdown', () => { ringTS = 0.72; });
+    window.addEventListener('pointerup', () => { ringTS = curRing.classList.contains('is-link') ? 1.5 : 1; });
+    document.documentElement.addEventListener('mouseleave', () => { curDot.style.opacity = curRing.style.opacity = '0'; });
+    document.documentElement.addEventListener('mouseenter', () => { if (curShown) curDot.style.opacity = curRing.style.opacity = '1'; });
+  }
+
   if (!reduceMotion) {
     rafId = requestAnimationFrame(frame);
     // pausa i loop quando il tab non e' visibile: 0 CPU in background
@@ -334,7 +367,10 @@
   /* menu mobile */
   const burger = document.querySelector('.nav__burger');
   const nav = document.querySelector('.nav');
-  burger.addEventListener('click', () => nav.classList.toggle('is-open'));
+  burger.addEventListener('click', () => {
+    const open = nav.classList.toggle('is-open');
+    burger.setAttribute('aria-expanded', String(open));
+  });
 
   /* ---------- WARP: glitch/shake "teletrasporto quantistico" sui link di navigazione ---------- */
   const warpEl = document.createElement('div');
@@ -402,31 +438,6 @@
   /* ---------- COPERTINE PROGETTI STATICHE: ferma le animazioni SMIL delle thumbnail (0 costo per-frame) ---------- */
   document.querySelectorAll('.thumb-svg').forEach((s) => {
     try { s.setCurrentTime(2.6); s.pauseAnimations(); } catch (e) {}   // congela su un fotogramma "pieno" e ferma la timeline
-  });
-
-  /* ---------- TOAST (wireframe / layout) ---------- */
-  const toast = document.getElementById('toast');
-  const toastTitle = document.getElementById('toastTitle');
-  const toastSub = document.getElementById('toastSub');
-  let toastTimer;
-
-  function showToast(title, sub) {
-    toastTitle.textContent = title;
-    toastSub.textContent = sub;
-    toast.classList.add('is-show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('is-show'), 3200);
-  }
-
-  document.querySelectorAll('.wip-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.wip-btn').forEach((b) => b.classList.remove('wip-btn--active'));
-      btn.classList.add('wip-btn--active');
-      showToast(
-        btn.dataset.mode === 'layout' ? 'Layout in preparazione' : 'Wireframe in preparazione',
-        'Sto preparando il sito'
-      );
-    });
   });
 
 })();

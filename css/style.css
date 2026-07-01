@@ -25,7 +25,7 @@
 @property --shine{syntax:"<percentage>";inherits:false;initial-value:-30%}
 
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-top:84px}
 /* Lenis smooth scroll (v1.3.23 official) */
 html.lenis,html.lenis body{height:auto}
 .lenis:not(.lenis-autoToggle).lenis-stopped{overflow:clip}
@@ -39,11 +39,14 @@ body{
   line-height:1.7;
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;   /* niente flash blu al tap su mobile */
 }
 ::selection{background:var(--blue);color:#fff}
 a{color:inherit;text-decoration:none}
 ul{list-style:none}
 button{font-family:inherit;cursor:pointer}
+/* focus visibile a tema: navigazione da tastiera all'altezza del resto */
+:focus-visible{outline:2px solid rgba(95,243,255,.65);outline-offset:3px;border-radius:6px}
 
 /* scrollbar nascosta (lo scroll resta, indicatori: progress bar + dot-nav) */
 html{scrollbar-width:none;-ms-overflow-style:none}
@@ -99,10 +102,14 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 /* frost mantenuto solo sulla nav: 1 solo elemento fisso, costo trascurabile */
 .nav.glass{backdrop-filter:blur(8px) saturate(120%);-webkit-backdrop-filter:blur(8px) saturate(120%)}
 .grad-text{background:var(--grad-title);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* titoli bilanciati: niente ultima riga con una parola sola */
+.hud__name,.hud__c-title,.hud__log-title{text-wrap:balance}
 
-/* reveal allo scroll */
-.reveal{opacity:0;transform:translateY(42px) scale(.975);transition:opacity 1s var(--ease) var(--d,0s),transform 1.1s var(--ease) var(--d,0s)}
-.reveal.is-in{opacity:1;transform:none}
+/* reveal allo scroll: micro-blur in ingresso = messa a fuoco cinematica.
+   Lo stato finale e' filter:none (nessuno stacking/rasterizzazione residua a riposo). */
+.reveal{opacity:0;transform:translateY(42px) scale(.975);filter:blur(9px);
+  transition:opacity 1s var(--ease) var(--d,0s),transform 1.1s var(--ease) var(--d,0s),filter .9s var(--ease) var(--d,0s)}
+.reveal.is-in{opacity:1;transform:none;filter:none}
 
 /* ============ NAV ============ */
 .nav-wrap{position:fixed;top:14px;left:0;right:0;z-index:100;transition:transform .4s var(--ease)}
@@ -116,7 +123,8 @@ html{scrollbar-width:none;-ms-overflow-style:none}
   animation:navIn .9s var(--ease) both;
 }
 @keyframes navIn{from{opacity:0;transform:translateY(-24px)}to{opacity:1;transform:none}}
-.nav__logo{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:.02em;color:#fff;white-space:nowrap}
+.nav__logo{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:.02em;color:#fff;white-space:nowrap;transition:text-shadow .35s var(--ease)}
+.nav__logo:hover{text-shadow:0 0 18px rgba(95,243,255,.55)}
 .nav__links{display:flex;gap:18px;margin-left:auto;margin-right:10px}
 .nav__links a{
   position:relative;z-index:0;padding:7px 13px;font-size:14.5px;color:#dbe2f2;
@@ -210,7 +218,7 @@ html{scrollbar-width:none;-ms-overflow-style:none}
 /* ============ HERO ============ */
 /* overflow-x:clip = contiene il blob gigante (168vw) entro il viewport: niente scrollbar
    orizzontale ne disallineamenti su schermi larghi; il verticale resta libero (no tagli) */
-.hero{min-height:100vh;display:flex;align-items:center;position:relative;padding:104px 0;overflow-x:clip}
+.hero{min-height:100vh;min-height:100svh;display:flex;align-items:center;position:relative;padding:104px 0;overflow-x:clip}
 .hero__content{position:relative;z-index:3}
 
 .kicker{
@@ -236,12 +244,14 @@ html{scrollbar-width:none;-ms-overflow-style:none}
   background-image:linear-gradient(105deg,#2e63ea 0%,#6d7cf3 26%,#9aa4f8 50%,#9c85f6 68%,#7c4ff0 88%,#8f63ff 100%);
   background-size:185% 100%;
   -webkit-background-clip:text;background-clip:text;
-  animation:titleUp 1.1s var(--ease) both;
+  animation:titleUp 1.1s var(--ease) both,titleSheen 18s ease-in-out infinite alternate;
   transform:translateY(110%);
 }
+/* gradiente "vivo": deriva lentissima della luce lungo il titolo, sfasata tra le due righe */
 .hero__line:nth-child(1) span{background-position:0% 0%}
-.hero__line:nth-child(2) span{background-position:100% 0%;animation-delay:.15s}
+.hero__line:nth-child(2) span{background-position:100% 0%;animation-delay:.15s,-9s}
 @keyframes titleUp{to{transform:translateY(0)}}
+@keyframes titleSheen{from{background-position:0% 0%}to{background-position:100% 0%}}
 
 .hero__sub{color:var(--text);font-size:16px;max-width:560px;margin-bottom:0;text-shadow:0 2px 18px rgba(0,0,10,.8)}
 .hero__cta{display:flex;gap:16px;flex-wrap:wrap;margin-top:42px}
@@ -338,7 +348,6 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
   animation:blobGlowPulse 6s ease-in-out infinite;   /* solo opacita': niente scale = il blur 42px non si ri-rasterizza ogni frame */
 }
 @keyframes blobGlowPulse{0%,100%{opacity:.7}50%{opacity:1}}
-@keyframes glowPulse{0%,100%{opacity:.7;scale:1}50%{opacity:1;scale:1.08}}
 
 /* ============ SEZIONI ============ */
 /* niente content-visibility:auto: rinviava il render delle sezioni fuori schermo causando
@@ -392,7 +401,7 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
 }
 .card:hover .card__foil{opacity:.6;mix-blend-mode:overlay}
 /* bordo conico premium che ruota in hover */
-.card:not(.contact)::after{
+.card::after{
   content:"";position:absolute;inset:0;border-radius:inherit;padding:1.3px;pointer-events:none;z-index:2;
   background:conic-gradient(from var(--angle),
     transparent 0deg,rgba(95,243,255,0) 55deg,
@@ -403,79 +412,14 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
   opacity:0;transition:opacity .5s var(--ease);
   animation:borderSpin 4.5s linear infinite paused;   /* sempre applicata ma in pausa: l'angolo non si resetta mai all'uscita */
 }
-.card:not(.contact):hover::after{opacity:1;animation-play-state:running}
+.card:hover::after{opacity:1;animation-play-state:running}
 @keyframes borderSpin{to{--angle:360deg}}
 
 .card p+p{margin-top:14px}
 /* profondità: contenuti che "galleggiano" nel tilt */
-.card .card__icon,.card .card__title,.card .card__eyebrow,
-.card .key-list,.card .skill__tags,.card .chips,.card>p,.card .card__value{
-  transition:transform .45s var(--ease);
-}
-.card:hover .card__icon{transform:translateZ(46px)}
-.card:hover .card__title{transform:translateZ(30px)}
-.card:hover .card__eyebrow{transform:translateZ(24px)}
-.card:hover>p,.card:hover .card__value,.card:hover .skill__tags,
-.card:hover .chips,.card:hover .key-list{transform:translateZ(18px)}
-
-.card__icon{
-  position:relative;z-index:1;
-  width:52px;height:52px;border-radius:14px;flex-shrink:0;
-  display:grid;place-items:center;color:var(--blue-soft);
-  background:linear-gradient(150deg,rgba(60,90,255,.18),rgba(42,70,255,.06));
-  border:1px solid rgba(90,120,255,.25);
-  margin-bottom:20px;
-  box-shadow:inset 0 0 18px rgba(60,90,255,.14);
-  transition:transform .45s var(--ease),color .35s,border-color .35s,box-shadow .35s;
-}
-.card__icon svg{transition:transform .5s var(--ease),filter .35s}
-.card:hover .card__icon{
-  color:var(--cyan);border-color:rgba(95,243,255,.55);
-  box-shadow:inset 0 0 22px rgba(95,243,255,.22),0 0 28px rgba(60,120,255,.4);
-}
-.card:hover .card__icon svg{transform:scale(1.08);filter:drop-shadow(0 0 6px rgba(95,243,255,.6))}
-.card--row{display:flex;align-items:center;gap:20px}
-.card--row .card__icon{margin-bottom:0}
-.card__eyebrow{font-size:11px;letter-spacing:.18em;color:var(--text-dim);font-weight:500;margin-bottom:6px}
-.card__value{color:#e9edf8}
-.card__title{font-family:var(--display);font-size:18px;font-weight:700;color:#f0f3fc;letter-spacing:.01em;margin-bottom:6px}
-.tag-mini{
-  display:inline-block;padding:1px 7px;margin-right:6px;border-radius:5px;font-size:11.5px;
-  background:rgba(42,70,255,.18);border:1px solid rgba(90,120,255,.3);color:var(--blue-soft);
-}
-.pulse-ring{position:relative}
-.pulse-ring::after{
-  content:"";position:absolute;inset:-1px;border-radius:inherit;
-  border:1px solid rgba(90,120,255,.5);
-  animation:pulseRing 2.6s var(--ease) infinite;
-}
+.card .chips,.card>p{transition:transform .45s var(--ease)}
+.card:hover>p,.card:hover .chips{transform:translateZ(18px)}
 @keyframes pulseRing{0%{opacity:.8;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.45)}}
-
-/* ============ ABOUT ============ */
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
-.about-langs{display:flex;flex-direction:column;gap:18px}
-.about-langs .card{flex:1}
-
-/* ============ SKILLS ============ */
-.skills-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.skills-key{grid-row:span 2;display:flex;flex-direction:column}
-.key-list{margin-top:14px;display:flex;flex-direction:column;gap:11px}
-.key-list li{
-  display:flex;align-items:center;gap:11px;font-size:13.5px;color:var(--text);
-  transition:color .3s,transform .3s var(--ease);
-}
-.key-list li::before{
-  content:"";width:14px;height:14px;flex-shrink:0;border-radius:50%;
-  border:1.4px solid var(--cyan);
-  background:radial-gradient(circle at center,var(--cyan) 0 3px,transparent 3.5px);
-  box-shadow:0 0 8px rgba(95,243,255,.4);
-  transition:box-shadow .3s,transform .3s var(--ease);
-}
-.key-list li:hover{color:#fff;transform:translateX(5px)}
-.key-list li:hover::before{box-shadow:0 0 16px rgba(95,243,255,.9);transform:scale(1.15)}
-.skill{display:flex;gap:18px;align-items:flex-start;padding:26px}
-.skill .card__icon{margin-bottom:0;width:48px;height:48px}
-.skill__tags{font-size:12.5px;color:var(--text-dim);line-height:1.8}
 
 /* chip tecnologie premium */
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px;position:relative;z-index:1}
@@ -521,50 +465,8 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
 .project__chips{margin-top:11px}
 .project__chips .chip{padding:3px 8px;font-size:10.5px;border-radius:7px}
 
-/* overlay wireframe/layout */
-.project__overlay{
-  position:absolute;inset:0;z-index:5;display:flex;gap:10px;align-items:center;justify-content:center;
-  background:rgba(4,6,15,.55);backdrop-filter:blur(3px);
-  opacity:0;transition:opacity .35s;
-}
-.project--wip:hover .project__overlay{opacity:1}
-.wip-btn{
-  padding:8px 14px;border-radius:9px;font-size:10.5px;letter-spacing:.12em;font-weight:600;
-  background:rgba(10,14,32,.85);border:1px solid rgba(130,155,255,.35);color:#dfe6ff;
-  transition:.25s;
-}
-.wip-btn--active,.wip-btn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 16px rgba(95,243,255,.3)}
-
-/* ============ TIMELINE ============ */
-.timeline{position:relative;display:flex;flex-direction:column;gap:22px;padding-left:34px}
-.timeline::before{
-  content:"";position:absolute;left:7px;top:8px;bottom:8px;width:1px;
-  background:linear-gradient(180deg,var(--cyan),var(--blue) 40%,var(--violet));
-  opacity:.5;
-}
-.timeline__item{position:relative}
-.timeline__dot{
-  position:absolute;left:-34px;top:30px;width:15px;height:15px;border-radius:50%;
-  background:var(--bg);border:2px solid var(--blue-soft);
-  box-shadow:0 0 0 4px rgba(42,70,255,.15),0 0 14px rgba(80,110,255,.6);
-}
-.timeline__item:nth-child(1) .timeline__dot{border-color:var(--cyan)}
-.timeline__item:nth-child(3) .timeline__dot{border-color:var(--violet)}
-
 /* ============ CONTATTI ============ */
 .section--contact{padding-bottom:0}
-.contact{padding:70px 50px;text-align:center;border-radius:22px;overflow:hidden}
-.contact::after{
-  content:"";position:absolute;left:50%;top:-60%;width:120%;height:120%;transform:translateX(-50%);
-  background:radial-gradient(ellipse 50% 45% at 50% 30%,rgba(60,90,255,.18),transparent 70%);
-  pointer-events:none;
-}
-.contact__title{
-  font-family:var(--display);font-weight:850;font-stretch:105%;
-  font-size:clamp(34px,5.4vw,64px);line-height:1.04;letter-spacing:-.01em;color:#f0f3fc;
-  margin-bottom:18px;
-}
-.contact__sub{color:var(--text-dim);margin-bottom:38px}
 .contact__actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
 .footer{
   display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
@@ -572,25 +474,21 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
 }
 .footer__dot{color:var(--cyan);animation:blink 2s steps(1) infinite}
 
-/* ============ TOAST ============ */
-.toast{
-  position:fixed;left:50%;bottom:28px;z-index:300;
-  transform:translate(-50%,140%);
-  display:flex;align-items:center;gap:16px;
-  padding:16px 28px;border-radius:40px;
-  background:rgba(8,11,24,.85);
-  box-shadow:0 14px 50px rgba(0,0,12,.7),0 0 0 1px rgba(120,150,255,.18);
-  transition:transform .55s var(--ease);
+/* ============ CURSORE CUSTOM (solo puntatori precisi, creato da JS) ============ */
+html.has-cursor,html.has-cursor a,html.has-cursor button,html.has-cursor summary{cursor:none}
+.cursor-dot{
+  position:fixed;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;z-index:10001;
+  background:var(--cyan);box-shadow:0 0 10px rgba(95,243,255,.95),0 0 22px rgba(95,243,255,.4);
+  pointer-events:none;opacity:0;transition:opacity .3s;
 }
-.toast.is-show{transform:translate(-50%,0)}
-.toast__icon{
-  width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:17px;color:#fff;
-  background:radial-gradient(circle at 30% 30%,#5f7dff,#2a46ff);
-  box-shadow:0 0 22px rgba(60,100,255,.6);
-  animation:glowPulse 2.4s ease-in-out infinite;
+.cursor-ring{
+  position:fixed;left:-18px;top:-18px;width:36px;height:36px;border-radius:50%;z-index:10000;
+  border:1.5px solid rgba(95,243,255,.5);
+  box-shadow:inset 0 0 16px rgba(95,243,255,.12);
+  pointer-events:none;opacity:0;
+  transition:opacity .3s,border-color .3s var(--ease),box-shadow .3s var(--ease);
 }
-.toast strong{display:block;color:#fff;font-size:14.5px;font-family:var(--display);font-weight:700}
-.toast span{font-size:12px;color:var(--text-dim)}
+.cursor-ring.is-link{border-color:rgba(95,243,255,.95);box-shadow:inset 0 0 18px rgba(95,243,255,.28),0 0 26px rgba(95,243,255,.3)}
 
 /* ============ DOT-NAV LATERALE ============ */
 .dotnav{
@@ -620,8 +518,6 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
 
 /* ============ RESPONSIVE ============ */
 @media(max-width:1080px){
-  .skills-grid{grid-template-columns:repeat(2,1fr)}
-  .skills-key{grid-row:span 3}
   .projects-grid{grid-template-columns:repeat(3,1fr)}
   .hero__blob{opacity:.55;left:72%;width:88vw}
   .dotnav{display:none}
@@ -634,7 +530,7 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
   .nav{gap:14px;padding:13px var(--gutter);position:relative}
   .nav__logo{font-size:16px}
   .nav .btn--pill{margin-left:auto}
-  .nav__burger{display:flex}
+  .nav__burger{display:flex;min-width:44px;min-height:44px;align-items:center;justify-content:center;padding:11px;margin-right:-8px}   /* area tap 44px (standard) */
   .nav.is-open .nav__links{
     display:flex;flex-direction:column;gap:4px;position:absolute;left:0;right:0;top:calc(100% + 8px);
     background:rgba(6,8,18,.96);border:1px solid var(--border);border-radius:14px;padding:10px;
@@ -654,24 +550,27 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
   .hero__sub{font-size:15px}
   .hero__cta{gap:12px;margin-top:30px;width:100%}
   .hero__cta .btn{flex:1 1 100%;justify-content:center;padding:15px 24px}
-  .hero__blob{top:31%;left:62%;width:170vw;opacity:.46}   /* buco nero grande, alto a destra (come prima) */
+  /* mobile: buco nero come fondale tenue. la parte luminosa e' decentrata nell'immagine,
+     quindi shifto left per centrare l'anello; opacity bassa (filter, non la sovrascrive il JS). */
+  .hero__blob{top:48%;left:35%;width:200vw;filter:opacity(.28)}
 
   /* griglie a colonna singola */
-  .about-grid{grid-template-columns:1fr}
-  .skills-grid{grid-template-columns:1fr}
-  .skills-key{grid-row:auto}
   .projects-grid{grid-template-columns:1fr}
 
-  /* HUD: padding piu' raccolti, niente max-width che spreca spazio */
-  .hud__main{padding:26px 22px}
-  .hud__bio{max-width:none}
-  .hud__timeline{padding-left:26px}
-  .hud__log-dot{left:-26px}
-  .hud__log-desc{max-width:none}
+  /* HUD: padding raccolti + testo mono compatto (niente "papiro" su mobile) */
+  .hud__main{padding:24px 20px}
+  .hud__pad{padding:24px 20px}                                    /* prima 30px 38px: sprecava larghezza */
+  .hud__name{font-size:clamp(28px,8.5vw,42px)}
+  .hud__bio{max-width:none;font-size:13px;line-height:1.72}       /* da 15px/1.8: muro molto piu' basso e leggibile */
+  .hud__log-title{font-size:15.5px}
+  .hud__log-desc{max-width:none;font-size:13px;line-height:1.7}
+  .hud__timeline{padding-left:24px}
+  .hud__log-dot{left:-24px}
+  .nav{background:rgba(6,8,18,.94)}                               /* piu' opaca: il contenuto non "fantasma" dietro */
 
   /* contatti: bottoni a tutta larghezza, l'email non esce mai dal bottone */
-  .hud__contact{padding:30px 22px}
-  .hud__c-sub{margin-bottom:22px}
+  .hud__contact{padding:24px 20px}
+  .hud__c-sub{margin-bottom:22px;font-size:13.5px;line-height:1.7}
   .hud--contact .contact__actions{flex-direction:column;gap:12px}
   .contact__actions .btn{width:100%;justify-content:center;padding:14px 18px;font-size:13px;white-space:normal;overflow-wrap:anywhere;text-align:center}
 }
@@ -686,6 +585,14 @@ body.is-warping main{animation:warpShake .46s cubic-bezier(.36,.07,.19,.97)}
   .hud__lang-name{font-size:14px}
   .hud__chrome{padding:11px 16px;gap:9px}
   .section{padding:64px 0 14px}
+}
+@media(max-width:420px){
+  /* nav su schermi molto piccoli: logo + burger + CTA compatta (senza icona) devono starci sempre */
+  .nav__logo{font-size:14px}
+  .nav{gap:8px}
+  .nav .btn--pill{padding:8px 12px;font-size:12px;gap:0}
+  .nav .btn--pill svg{display:none}
+  .hero__cta .btn{padding:14px 18px;font-size:13.5px}
 }
 
 /* ============================================================
